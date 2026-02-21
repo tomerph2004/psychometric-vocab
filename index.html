@@ -364,6 +364,10 @@ function showApp() {
     sel.innerHTML += '<option value="' + u + '">יחידה ' + u + ' (' + count + ')</option>';
   });
   
+  // Restore last unit
+  let lastUnit = localStorage.getItem(username + '_lastUnit');
+  if (lastUnit) sel.value = lastUnit;
+  
   applyFilter();
   setMode('flashcards');
   showSyncBtn();
@@ -372,6 +376,9 @@ function showApp() {
 function applyFilter() {
   let unit = document.getElementById('unitFilter').value;
   let sort = document.getElementById('sortFilter').value;
+  
+  // Save selected unit
+  if (username) localStorage.setItem(username + '_lastUnit', unit);
   
   filteredWords = unit === 'all' ? [...VOCAB] : VOCAB.filter(w => w.unit == unit);
   
