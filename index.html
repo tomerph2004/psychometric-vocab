@@ -834,7 +834,7 @@ async function doFirstUpload() {
     setTimeout(() => openSyncModal(), 500);
   } catch(e) {
     console.error('First upload error:', e);
-    document.getElementById('syncStatus').innerHTML = '❌ ' + (e.message || 'שגיאה — נסה שוב');
+    document.getElementById('syncStatus').innerHTML = '❌ ' + (e.message || 'שגיאה') + '<br><pre style="font-size:0.7em;text-align:left;direction:ltr;max-height:150px;overflow:auto;background:var(--bg);padding:8px;border-radius:8px;margin-top:8px;">' + (e.stack || e) + '</pre>';
   }
 }
 
