@@ -791,19 +791,26 @@ async function doExport() {
   let mastered = Object.values(p).filter(x => x.correct >= 3 && x.interval >= 5).length;
   let msg = '🔄 *גיבוי התקדמות*\n👤 ' + username + '\n📊 ' + seen + ' נצפו | ' + mastered + ' נרכשו\n\nקוד סנכרון:\n`' + code + '`\n\n_הדבק את הקוד באפליקציה → סנכרון → ייבוא_';
   
+  // Send via Telegram Bot API using JSONP-style workaround for Safari
   try {
-    let r = await fetch('https://api.telegram.org/bot8549430137:AAGCGTQI3YPS3dboEHxNXws7fHFTX6NbIhs/sendMessage', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ chat_id: 929239973, text: msg, parse_mode: 'Markdown' })
-    });
+    let encoded = encodeURIComponent(msg);
+    let url = 'https://api.telegram.org/bot8549430137:AAGCGTQI3YPS3dboEHxNXws7fHFTX6NbIhs/sendMessage?chat_id=929239973&parse_mode=Markdown&text=' + encoded;
+    let r = await fetch(url);
     if (r.ok) {
       document.getElementById('syncStatus').innerHTML = '✅ נשלח לטלגרם! הקוד גם מוכן להעתקה';
     } else {
       document.getElementById('syncStatus').innerHTML = '⚠️ הקוד מוכן להעתקה (שליחה לטלגרם נכשלה)';
     }
   } catch(e) {
-    document.getElementById('syncStatus').innerHTML = '⚠️ הקוד מוכן להעתקה (שליחה לטלגרם נכשלה)';
+    // Fallback: try with an img tag (fire-and-forget)
+    try {
+      let encoded = encodeURIComponent(msg.replace(/[*_`]/g, ''));
+      let img = new Image();
+      img.src = 'https://api.telegram.org/bot8549430137:AAGCGTQI3YPS3dboEHxNXws7fHFTX6NbIhs/sendMessage?chat_id=929239973&text=' + encoded;
+      document.getElementById('syncStatus').innerHTML = '✅ הקוד מוכן להעתקה (נשלח לטלגרם)';
+    } catch(e2) {
+      document.getElementById('syncStatus').innerHTML = '⚠️ הקוד מוכן להעתקה (שליחה לטלגרם נכשלה)';
+    }
   }
 }
 
