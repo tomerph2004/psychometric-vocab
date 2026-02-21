@@ -124,6 +124,7 @@ body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); color
   <div id="mainApp" style="display:none;">
     <div class="nav">
       <button class="btn btn-primary" data-mode="flashcards" onclick="setMode('flashcards')">🃏 כרטיסיות</button>
+      <button class="btn btn-primary" data-mode="unknown" onclick="setMode('unknown')">🆕 לא מוכרות</button>
       <button class="btn btn-primary" data-mode="quiz" onclick="setMode('quiz')">❓ חידון</button>
       <button class="btn btn-primary" data-mode="review" onclick="setMode('review')">🔁 סקירת טעויות</button>
       <button class="btn btn-primary" data-mode="stats" onclick="setMode('stats')">📊 סטטיסטיקה</button>
@@ -171,6 +172,39 @@ body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); color
         <button class="btn btn-primary" onclick="nextCard()">הבא ←</button>
       </div>
       <div class="flashcard-progress" id="fc-progress"></div>
+    </div>
+
+    <!-- Unknown Words Mode -->
+    <div id="mode-unknown" style="display:none;">
+      <div class="card" style="text-align:center;margin-bottom:16px;">
+        <h3>🆕 מילים לא מוכרות</h3>
+        <p style="opacity:0.7;font-size:0.9em;margin-top:4px;">מילים שטרם ראית או שסימנת כ"לא ידעתי"</p>
+        <p style="margin-top:8px;"><strong id="unknown-count"></strong></p>
+      </div>
+      <div class="flashcard-container">
+        <div class="flashcard" id="unknown-flashcard" onclick="flipUnknown()">
+          <div class="flashcard-face">
+            <span class="flashcard-unit" id="uk-unit"></span>
+            <div class="flashcard-word" id="uk-word"></div>
+            <div style="font-size:0.9em; opacity:0.5; margin-top:8px;">לחץ להפוך</div>
+          </div>
+          <div class="flashcard-face flashcard-back">
+            <span class="flashcard-unit" id="uk-unit2"></span>
+            <div class="flashcard-word" id="uk-word2"></div>
+            <div class="flashcard-def" id="uk-def"></div>
+            <div class="flashcard-example" id="uk-example"></div>
+          </div>
+        </div>
+      </div>
+      <div class="flashcard-rating" id="uk-rating" style="display:none;">
+        <button class="btn btn-error btn-small" onclick="rateUnknown(0)">❌ עדיין לא מכיר</button>
+        <button class="btn btn-success btn-small" onclick="rateUnknown(2)">✅ עכשיו מכיר!</button>
+      </div>
+      <div class="flashcard-nav">
+        <button class="btn btn-secondary" onclick="prevUnknown()">→ הקודם</button>
+        <button class="btn btn-primary" onclick="nextUnknown()">הבא ←</button>
+      </div>
+      <div class="flashcard-progress" id="uk-progress"></div>
     </div>
 
     <!-- Quiz Mode -->
@@ -348,12 +382,13 @@ function setMode(mode) {
   document.querySelectorAll('.nav .btn').forEach(b => b.classList.remove('active'));
   document.querySelector('[data-mode="' + mode + '"]').classList.add('active');
   
-  ['flashcards','quiz','review','stats'].forEach(m => {
+  ['flashcards','unknown','quiz','review','stats'].forEach(m => {
     document.getElementById('mode-' + m).style.display = m === mode ? 'block' : 'none';
   });
   document.getElementById('filtersBar').style.display = mode === 'stats' ? 'none' : 'flex';
   
   if (mode === 'flashcards') showFlashcard();
+  if (mode === 'unknown') showUnknownMode();
   if (mode === 'quiz') startQuiz();
   if (mode === 'review') showReview();
   if (mode === 'stats') showStats();
@@ -492,6 +527,84 @@ function removeMistakeAndRefresh(btn) {
   showReview();
 }
 
+// Unknown words mode
+let unknownWords = [];
+let ukIndex = 0;
+
+function getUnknownWords() {
+  let p = getProgress();
+  let mistakes = getMistakes();
+  let mistakeWords = new Set(mistakes.map(w => w.word));
+  
+  // Words that: never seen, OR marked wrong and not yet mastered
+  return filteredWords.filter(w => {
+    let wp = p[w.word];
+    if (!wp) return true; // never seen
+    if (mistakeWords.has(w.word)) return true; // in mistakes list
+    if (wp.wrong > wp.correct) return true; // more wrong than right
+    return false;
+  });
+}
+
+function showUnknownMode() {
+  unknownWords = getUnknownWords();
+  ukIndex = 0;
+  document.getElementById('unknown-count').textContent = unknownWords.length + ' מילים לא מוכרות';
+  showUnknownCard();
+}
+
+function showUnknownCard() {
+  if (!unknownWords.length) {
+    document.getElementById('unknown-flashcard').innerHTML = 
+      '<div class="flashcard-face" style="position:relative;"><div class="flashcard-word">🎉</div><div style="font-size:1.1em;">כל הכבוד! אין מילים לא מוכרות</div></div>';
+    document.getElementById('uk-rating').style.display = 'none';
+    document.getElementById('uk-progress').textContent = '';
+    return;
+  }
+  if (ukIndex >= unknownWords.length) ukIndex = 0;
+  if (ukIndex < 0) ukIndex = unknownWords.length - 1;
+  
+  let w = unknownWords[ukIndex];
+  
+  // Reset card HTML if it was emptied by "no words" state
+  let fc = document.getElementById('unknown-flashcard');
+  if (!document.getElementById('uk-word')) {
+    fc.innerHTML = 
+      '<div class="flashcard-face"><span class="flashcard-unit" id="uk-unit"></span><div class="flashcard-word" id="uk-word"></div><div style="font-size:0.9em;opacity:0.5;margin-top:8px;">לחץ להפוך</div></div>' +
+      '<div class="flashcard-face flashcard-back"><span class="flashcard-unit" id="uk-unit2"></span><div class="flashcard-word" id="uk-word2"></div><div class="flashcard-def" id="uk-def"></div><div class="flashcard-example" id="uk-example"></div></div>';
+  }
+  
+  fc.classList.remove('flipped');
+  document.getElementById('uk-rating').style.display = 'none';
+  document.getElementById('uk-word').textContent = w.word;
+  document.getElementById('uk-word2').textContent = w.word;
+  document.getElementById('uk-def').textContent = w.definition;
+  document.getElementById('uk-example').textContent = w.example || '';
+  document.getElementById('uk-example').style.display = w.example ? 'block' : 'none';
+  document.getElementById('uk-unit').textContent = 'יחידה ' + w.unit;
+  document.getElementById('uk-unit2').textContent = 'יחידה ' + w.unit;
+  document.getElementById('uk-progress').textContent = (ukIndex + 1) + ' / ' + unknownWords.length;
+}
+
+function flipUnknown() {
+  document.getElementById('unknown-flashcard').classList.toggle('flipped');
+  if (document.getElementById('unknown-flashcard').classList.contains('flipped')) {
+    document.getElementById('uk-rating').style.display = 'flex';
+  }
+}
+
+function rateUnknown(q) {
+  let w = unknownWords[ukIndex];
+  updateSR(w.word, q);
+  if (q === 0) addMistake(w);
+  else { removeMistake(w.word); unknownWords.splice(ukIndex, 1); if (ukIndex >= unknownWords.length) ukIndex = 0; }
+  document.getElementById('unknown-count').textContent = unknownWords.length + ' מילים לא מוכרות';
+  showUnknownCard();
+}
+
+function nextUnknown() { ukIndex++; showUnknownCard(); }
+function prevUnknown() { ukIndex--; showUnknownCard(); }
+
 // Stats
 function showStats() {
   let p = getProgress();
@@ -568,6 +681,13 @@ document.addEventListener('keydown', e => {
     if (e.key === '1') rateCard(0);
     if (e.key === '2') rateCard(1);
     if (e.key === '3') rateCard(2);
+  }
+  if (currentMode === 'unknown') {
+    if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); flipUnknown(); }
+    if (e.key === 'ArrowLeft') nextUnknown();
+    if (e.key === 'ArrowRight') prevUnknown();
+    if (e.key === '1') rateUnknown(0);
+    if (e.key === '2') rateUnknown(2);
   }
 });
 
