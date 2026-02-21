@@ -431,6 +431,7 @@ function applyFilter() {
   
   if (currentMode === 'flashcards') showFlashcard();
   if (currentMode === 'quiz') startQuiz();
+  if (currentMode === 'analogies') startAnalogies();
   if (currentMode === 'review') showReview();
   if (currentMode === 'stats') showStats();
 }
@@ -682,6 +683,9 @@ function showStats() {
   html += statCard(mistakes, 'לחזרה');
   html += statCard(accuracy + '%', 'דיוק');
   html += statCard(totalCorrect + totalWrong, 'תשובות');
+  let aStats = JSON.parse(localStorage.getItem(sKey('analogy_stats')) || '{"correct":0,"total":0}');
+  let aPct = aStats.total > 0 ? Math.round(aStats.correct / aStats.total * 100) : 0;
+  html += statCard(aStats.correct + '/' + aStats.total, '🧩 אנלוגיות');
   html += '</div>';
   
   html += '<div class="card"><h3>התקדמות כללית</h3>';
@@ -731,6 +735,250 @@ function toggleTheme() {
   document.getElementById('themeToggle').textContent = isLight ? '🌞' : '🌙';
 }
 
+// ============ ANALOGIES MODE ============
+const ANALOGIES = [
+  // Unit 1-3
+  {a:"אדוק",b:"נאמן",c:"סטואי",d:"אדיש",type:"synonym",unit:3,wrong:["מפוזר","רגשני","נלהב"]},
+  {a:"נוטר",b:"שומר",c:"צודה",d:"אורב",type:"synonym",unit:3,wrong:["בורח","שר","רוקד"]},
+  {a:"רהוט",b:"שוטף",c:"שדוף",d:"יבש",type:"synonym",unit:3,wrong:["רטוב","חם","קר"]},
+  {a:"מזור",b:"תרופה",c:"תואנה",d:"סיבה",type:"synonym",unit:3,wrong:["תוצאה","מחלה","כאב"]},
+  {a:"עורג",b:"מתגעגע",c:"גוהר",d:"מתכופף",type:"synonym",unit:3,wrong:["קופץ","רץ","עומד"]},
+  {a:"סונט",b:"מכעיס",c:"נוסך",d:"יוצק",type:"synonym",unit:3,wrong:["שובר","מנקה","בונה"]},
+  {a:"מחלצות",b:"לבוש",c:"פגיון",d:"נשק",type:"category",unit:3,wrong:["אוכל","כלי","ספר"]},
+  {a:"כותפת",b:"כתף",c:"אדן",d:"חלון",type:"part_whole",unit:1,wrong:["דלת","גג","קיר"]},
+  // Unit 4
+  {a:"חיפזון",b:"מהירות",c:"סיזיפי",d:"מפרך",type:"synonym",unit:4,wrong:["קל","מהנה","פשוט"]},
+  {a:"עכור",b:"צלול",c:"היולי",d:"מודרני",type:"antonym",unit:4,wrong:["קדמון","טבעי","גולמי"]},
+  {a:"גיא",b:"עמק",c:"ימה",d:"אגם",type:"synonym",unit:4,wrong:["נהר","ים","בריכה"]},
+  {a:"כחוש",b:"רזה",c:"חכלילי",d:"אדום",type:"synonym",unit:4,wrong:["כחול","ירוק","לבן"]},
+  {a:"פטריוט",b:"מולדת",c:"פילנתרופ",d:"אדם",type:"characteristic",unit:4,wrong:["כסף","חיה","צמח"]},
+  {a:"רוטן",b:"מתלונן",c:"רוכס",d:"מחבר",type:"synonym",unit:4,wrong:["מפריד","שובר","חותך"]},
+  {a:"שובך",b:"יונים",c:"רפת",d:"פרות",type:"characteristic",unit:4,wrong:["כלבים","חתולים","סוסים"]},
+  {a:"שוכך",b:"נרגע",c:"שוחה",d:"בור",type:"synonym",unit:4,wrong:["גבעה","הר","עמוד"]},
+  // Unit 5
+  {a:"אלטרואיזם",b:"זולתנות",c:"אליטה",d:"עילית",type:"synonym",unit:5,wrong:["שפלות","רגילות","בינוניות"]},
+  {a:"לואט",b:"לוחש",c:"מנתץ",d:"מרסק",type:"synonym",unit:5,wrong:["בונה","מחבר","מרכיב"]},
+  {a:"חלכאי",b:"עלוב",c:"יפעה",d:"יופי",type:"antonym_concept",unit:5,wrong:["כיעור","שממה","עצב"]},
+  {a:"מלנכוליה",b:"דכאון",c:"דיצה",d:"שמחה",type:"antonym",unit:6,wrong:["עצב","כאב","פחד"]},
+  {a:"סימולציה",b:"הדמיה",c:"סילוף",d:"עיוות",type:"synonym",unit:5,wrong:["אמת","דיוק","ישרות"]},
+  {a:"מכבש",b:"לחץ",c:"מכמין",d:"הסתרה",type:"action_tool",unit:5,wrong:["חשיפה","גילוי","הצגה"]},
+  {a:"ניח",b:"קבוע",c:"נטול",d:"חסר",type:"synonym",unit:5,wrong:["מלא","גדוש","שופע"]},
+  // Unit 6
+  {a:"אמפתיה",b:"הזדהות",c:"כלימה",d:"בושה",type:"synonym",unit:6,wrong:["גאווה","שמחה","אהבה"]},
+  {a:"זך",b:"טהור",c:"קלוקל",d:"פגום",type:"antonym",unit:6,wrong:["מושלם","נקי","חדש"]},
+  {a:"עמום",b:"מטושטש",c:"כליל",d:"שלם",type:"antonym",unit:6,wrong:["חלקי","שבור","חסר"]},
+  {a:"דל",b:"עני",c:"שכיח",d:"נפוץ",type:"synonym",unit:6,wrong:["נדיר","יחיד","בודד"]},
+  {a:"פלגמטי",b:"אדיש",c:"ססגוני",d:"צבעוני",type:"synonym",unit:9,wrong:["אפור","חיוור","דהוי"]},
+  {a:"בלשן",b:"שפה",c:"צורף",d:"מתכת",type:"worker_material",unit:6,wrong:["עץ","בד","חרס"]},
+  {a:"גלוסקמה",b:"קבורה",c:"קלחת",d:"בישול",type:"category",unit:6,wrong:["שינה","רחצה","כתיבה"]},
+  {a:"חמה",b:"זעם",c:"דיצה",d:"אושר",type:"degree",unit:6,wrong:["עצב","פחד","כאב"]},
+  {a:"קמין",b:"אש",c:"מזקקה",d:"נוזלים",type:"action_object",unit:3,wrong:["אבנים","עצים","מתכת"]},
+  // Unit 7
+  {a:"ענוה",b:"צניעות",c:"פלצות",d:"פחד",type:"synonym",unit:7,wrong:["אומץ","שלווה","שמחה"]},
+  {a:"קמל",b:"נבל",c:"כמש",d:"צמק",type:"synonym",unit:7,wrong:["פרח","גדל","התרענן"]},
+  {a:"שפוף",b:"כפוף",c:"תמיר",d:"זקוף",type:"antonym",unit:12,wrong:["נמוך","קצר","רחב"]},
+  {a:"יקב",b:"יין",c:"שובך",d:"יונים",type:"place_product",unit:7,wrong:["דבורים","כלבים","תרנגולים"]},
+  {a:"נכלולי",b:"ערמומי",c:"אנין",d:"עדין",type:"synonym",unit:7,wrong:["גס","חזק","קשה"]},
+  {a:"פלסתר",b:"זיוף",c:"פמליה",d:"חבורה",type:"synonym",unit:7,wrong:["יחיד","בודד","גלמוד"]},
+  {a:"צנה",b:"קור",c:"חמה",d:"כעס",type:"synonym",unit:7,wrong:["שמחה","שלווה","אהבה"]},
+  {a:"מצביא",b:"צבא",c:"נגיד",d:"בנק",type:"worker_place",unit:7,wrong:["בית","מסעדה","חנות"]},
+  // Unit 8
+  {a:"סלידה",b:"גועל",c:"סנגור",d:"הגנה",type:"synonym",unit:8,wrong:["תקיפה","האשמה","ענישה"]},
+  {a:"פרדוקס",b:"סתירה",c:"הפרכה",d:"ביטול",type:"synonym",unit:8,wrong:["אישור","הסכמה","תמיכה"]},
+  {a:"מרהיב",b:"מדהים",c:"מרשל",d:"מוזנח",type:"antonym",unit:8,wrong:["מסודר","נקי","יפה"]},
+  {a:"פעוט",b:"ילד",c:"ישיש",d:"זקן",type:"synonym",unit:11,wrong:["צעיר","נער","תינוק"]},
+  {a:"קצב",b:"בשר",c:"גלב",d:"שיער",type:"worker_material",unit:8,wrong:["עץ","מתכת","בד"]},
+  {a:"רמח",b:"חנית",c:"רוגטקה",d:"גומייה",type:"category",unit:8,wrong:["חרב","קשת","מגן"]},
+  {a:"דרדק",b:"טירון",c:"כפח",d:"ענק",type:"synonym",unit:8,wrong:["ננס","רגיל","קטן"]},
+  {a:"צפוד",b:"יבש",c:"מרפש",d:"מלוכלך",type:"synonym",unit:8,wrong:["נקי","מסודר","מבריק"]},
+  // Unit 9
+  {a:"ארכה",b:"דחייה",c:"הפוגה",d:"הפסקה",type:"synonym",unit:20,wrong:["המשך","התחלה","סיום"]},
+  {a:"לעז",b:"דיבה",c:"קנטור",d:"הרגזה",type:"synonym",unit:7,wrong:["הרגעה","פיוס","מחילה"]},
+  {a:"ערירי",b:"בודד",c:"הומוגני",d:"אחיד",type:"synonym",unit:13,wrong:["מגוון","שונה","מעורב"]},
+  {a:"נקיק",b:"סדק",c:"גומה",d:"חור",type:"synonym",unit:16,wrong:["גבעה","הר","תל"]},
+  {a:"ספר",b:"גבול",c:"מצר",d:"מעבר",type:"synonym",unit:9,wrong:["מרחב","שטח","אזור"]},
+  {a:"משוא פנים",b:"אפליה",c:"קלות ראש",d:"זלזול",type:"synonym",unit:13,wrong:["כבוד","הערכה","הוקרה"]},
+  // Unit 10
+  {a:"ארעי",b:"זמני",c:"פרמננטי",d:"קבוע",type:"antonym",unit:10,wrong:["חולף","ארעי","זמני"]},
+  {a:"לקוני",b:"תמציתי",c:"ארכן",d:"מאריך",type:"antonym",unit:10,wrong:["קצר","ממצה","תמציתי"]},
+  {a:"נרגן",b:"מתלונן",c:"משסה",d:"מסית",type:"synonym",unit:10,wrong:["מרגיע","משכין","מפייס"]},
+  {a:"רציונלי",b:"הגיוני",c:"אשליה",d:"דמיון",type:"antonym_concept",unit:10,wrong:["מציאות","אמת","עובדה"]},
+  {a:"סתירה",b:"ניגוד",c:"הלימה",d:"התאמה",type:"antonym",unit:10,wrong:["סתירה","פער","הבדל"]},
+  {a:"עתירה",b:"בקשה",c:"הגד",d:"אמירה",type:"synonym",unit:20,wrong:["שתיקה","דממה","שקט"]},
+  {a:"רשף",b:"ניצוץ",c:"שביב",d:"ניצוץ",type:"synonym",unit:12,wrong:["מים","רוח","אדמה"]},
+  // Unit 11
+  {a:"זאטוט",b:"תינוק",c:"ישיש",d:"זקן",type:"synonym",unit:11,wrong:["צעיר","ילד","נער"]},
+  {a:"שרלטן",b:"נוכל",c:"נואל",d:"טיפש",type:"synonym",unit:11,wrong:["חכם","פיקח","ערום"]},
+  {a:"מאוס",b:"דוחה",c:"מלבב",d:"משמח",type:"antonym",unit:15,wrong:["עצוב","מדכא","משעמם"]},
+  {a:"וולגרי",b:"גס",c:"אנין",d:"עדין",type:"antonym",unit:11,wrong:["גס","בוטה","גולמי"]},
+  {a:"כזב",b:"שקר",c:"אמת",d:"יושר",type:"antonym",unit:11,wrong:["שקר","כזב","הונאה"]},
+  {a:"תזזית",b:"שיגעון",c:"מתינות",d:"איפוק",type:"antonym",unit:11,wrong:["פזיזות","אימפולסיביות","פראות"]},
+  // Unit 12
+  {a:"אביון",b:"עני",c:"גביר",d:"עשיר",type:"antonym",unit:12,wrong:["עני","רש","דל"]},
+  {a:"רדיקלי",b:"קיצוני",c:"מתון",d:"שקול",type:"antonym",unit:12,wrong:["קיצוני","חריף","נמרץ"]},
+  {a:"חתרני",b:"בוגד",c:"לויאלי",d:"נאמן",type:"antonym",unit:15,wrong:["בוגד","נוכל","צבוע"]},
+  {a:"בוסר",b:"לא בשל",c:"בשל",d:"מוכן",type:"antonym",unit:12,wrong:["ירוק","טרי","חדש"]},
+  {a:"מנחה",b:"מתנה",c:"תשר",d:"טיפ",type:"synonym",unit:13,wrong:["קנס","חוב","מס"]},
+  {a:"קולמוס",b:"סופר",c:"מגל",d:"חקלאי",type:"tool_worker",unit:12,wrong:["רופא","שופט","מורה"]},
+  // Unit 13
+  {a:"אשנב",b:"חלון",c:"צוהר",d:"חלון",type:"synonym",unit:13,wrong:["דלת","קיר","גג"]},
+  {a:"סאון",b:"רעש",c:"דממה",d:"שקט",type:"antonym",unit:13,wrong:["רעש","המולה","שאון"]},
+  {a:"עגום",b:"עצוב",c:"צוהל",d:"שמח",type:"antonym",unit:13,wrong:["עצוב","קודר","נוגה"]},
+  {a:"סגפן",b:"מתנזר",c:"גרגרן",d:"רעבתן",type:"antonym",unit:13,wrong:["צנוע","מסתפק","פרוש"]},
+  {a:"רז",b:"סוד",c:"גילוי",d:"חשיפה",type:"antonym",unit:13,wrong:["הסתרה","העלמה","כיסוי"]},
+  {a:"ביבר",b:"חיות",c:"יקב",d:"יין",type:"place_product",unit:13,wrong:["מים","שמן","חלב"]},
+  // Unit 14
+  {a:"צחיח",b:"יבש",c:"פורה",d:"שופע",type:"antonym",unit:14,wrong:["יבש","שומם","צחיח"]},
+  {a:"סנטימנטלי",b:"רגשני",c:"רציונלי",d:"שכלני",type:"antonym",unit:14,wrong:["רגשני","סוער","נסער"]},
+  {a:"לטנטי",b:"חבוי",c:"גלוי",d:"חשוף",type:"antonym",unit:14,wrong:["חבוי","כמוס","טמיר"]},
+  {a:"פולמוס",b:"ויכוח",c:"הסכמה",d:"תמימות דעים",type:"antonym",unit:14,wrong:["ויכוח","מריבה","עימות"]},
+  {a:"חאן",b:"פונדק",c:"מרזח",d:"בר",type:"synonym",unit:14,wrong:["בית","גן","חנות"]},
+  {a:"קובע",b:"ראש",c:"אפסר",d:"צוואר",type:"part_whole",unit:14,wrong:["רגל","יד","גב"]},
+  // Unit 15
+  {a:"וטו",b:"מניעה",c:"אישור",d:"הסכמה",type:"antonym",unit:15,wrong:["מניעה","סירוב","דחייה"]},
+  {a:"הבליג",b:"התאפק",c:"התפרץ",d:"איבד שליטה",type:"antonym",unit:15,wrong:["התאפק","נרגע","שתק"]},
+  {a:"טפל",b:"משני",c:"עיקרי",d:"מרכזי",type:"antonym",unit:15,wrong:["שולי","שני","טפל"]},
+  {a:"מזמרה",b:"ענפים",c:"מגל",d:"תבואה",type:"tool_object",unit:15,wrong:["פרחים","עצים","ירקות"]},
+  {a:"שאט",b:"בוז",c:"סגידה",d:"הערצה",type:"antonym",unit:15,wrong:["בוז","זלזול","שנאה"]},
+  {a:"שוקת",b:"בהמות",c:"אבוס",d:"בקר",type:"characteristic",unit:15,wrong:["כלבים","חתולים","עופות"]},
+  // Unit 16
+  {a:"אבסורדי",b:"לא הגיוני",c:"רציונלי",d:"הגיוני",type:"antonym",unit:16,wrong:["מטורף","מוזר","מופרך"]},
+  {a:"נסק",b:"המריא",c:"נחת",d:"ירד",type:"antonym",unit:16,wrong:["עלה","טס","המריא"]},
+  {a:"פרולוג",b:"הקדמה",c:"סייפא",d:"סוף",type:"antonym",unit:16,wrong:["התחלה","פתיחה","ראשית"]},
+  {a:"מסואב",b:"מלוכלך",c:"זך",d:"נקי",type:"antonym",unit:16,wrong:["מלוכלך","מטונף","מזוהם"]},
+  {a:"הלצה",b:"בדיחה",c:"קינה",d:"ספד",type:"antonym",unit:16,wrong:["צחוק","שמחה","עליזות"]},
+  {a:"ונדליזם",b:"השחתה",c:"השבחה",d:"שיפור",type:"antonym",unit:16,wrong:["הרס","נזק","חורבן"]},
+  // Unit 17
+  {a:"מהימן",b:"אמין",c:"שרלטן",d:"נוכל",type:"antonym",unit:17,wrong:["ישר","כן","אמתי"]},
+  {a:"כאוס",b:"אי סדר",c:"סדר",d:"ארגון",type:"antonym",unit:17,wrong:["בלגן","תוהו","ערבוביה"]},
+  {a:"ויטאלי",b:"חיוני",c:"פלגמטי",d:"אדיש",type:"antonym",unit:17,wrong:["ערני","נמרץ","פעיל"]},
+  {a:"חוטר",b:"צאצא",c:"אב",d:"הורה",type:"antonym",unit:17,wrong:["בן","נכד","נין"]},
+  // Unit 18
+  {a:"ביזרי",b:"מוזר",c:"רגיל",d:"שגרתי",type:"antonym",unit:18,wrong:["מוזר","חריג","משונה"]},
+  {a:"גרוטסקי",b:"מגוחך",c:"מכובד",d:"נכבד",type:"antonym",unit:18,wrong:["מגוחך","מוזר","מביך"]},
+  {a:"טרקלין",b:"סלון",c:"קיטון",d:"חדר קטן",type:"antonym_size",unit:18,wrong:["אולם","היכל","טרקלין"]},
+  {a:"נושה",b:"מלווה",c:"לווה",d:"חייב",type:"antonym",unit:18,wrong:["מלווה","נותן","תורם"]},
+  {a:"נול",b:"אריגה",c:"אובניים",d:"חרס",type:"tool_craft",unit:18,wrong:["עץ","מתכת","זכוכית"]},
+  // Unit 19
+  {a:"חבוט",b:"נדוש",c:"חדשני",d:"מקורי",type:"antonym",unit:19,wrong:["ישן","שחוק","בנאלי"]},
+  {a:"יגון",b:"צער",c:"דיצה",d:"שמחה",type:"antonym",unit:19,wrong:["עצב","כאב","דאבון"]},
+  {a:"נבוב",b:"ריק",c:"מלא",d:"גדוש",type:"antonym",unit:19,wrong:["חלול","ריק","נבוב"]},
+  {a:"לסטים",b:"שודד",c:"סנגור",d:"מגן",type:"antonym",unit:19,wrong:["גנב","פושע","עבריין"]},
+  {a:"זרבובית",b:"כלי מזיגה",c:"שוקת",d:"השקיה",type:"tool_function",unit:19,wrong:["בישול","חימום","כביסה"]},
+  // Unit 20
+  {a:"אוילות",b:"טיפשות",c:"חוכמה",d:"תבונה",type:"antonym",unit:20,wrong:["טיפשות","סכלות","שטות"]},
+  {a:"טוטליטרי",b:"רודני",c:"דמוקרטי",d:"חופשי",type:"antonym",unit:20,wrong:["עריץ","דיכויי","שתלטני"]},
+  {a:"חרישי",b:"שקט",c:"סאון",d:"רעש",type:"antonym",unit:13,wrong:["שקט","דממה","שלווה"]},
+  {a:"נחרץ",b:"מוחלט",c:"מסויג",d:"מהוסס",type:"antonym",unit:20,wrong:["מוחלט","סופי","החלטי"]},
+  {a:"דופי",b:"פגם",c:"שלמות",d:"מושלמות",type:"antonym",unit:20,wrong:["גנאי","חסרון","מום"]},
+  {a:"שש",b:"שמח",c:"עגום",d:"עצוב",type:"antonym",unit:20,wrong:["שמח","עליז","צוהל"]},
+  {a:"בושש",b:"איחר",c:"הקדים",d:"מיהר",type:"antonym",unit:20,wrong:["איחר","התמהמה","השתהה"]},
+];
+
+const RELATION_NAMES = {
+  synonym: "מילה נרדפת",
+  antonym: "הפך",
+  antonym_concept: "הפך (מושג)",
+  antonym_size: "הפך (גודל)",
+  category: "קטגוריה",
+  degree: "דרגה / עוצמה",
+  part_whole: "חלק-שלם",
+  action_object: "פעולה-אובייקט",
+  action_tool: "פעולה-כלי",
+  tool_object: "כלי-אובייקט",
+  tool_worker: "כלי-בעל מקצוע",
+  tool_craft: "כלי-מלאכה",
+  tool_function: "כלי-פונקציה",
+  worker_material: "בעל מקצוע-חומר",
+  worker_place: "בעל מקצוע-מקום",
+  place_product: "מקום-תוצר",
+  characteristic: "מאפיין",
+};
+
+let analogyCorrect = 0, analogyTotal = 0, analogyCurrent = null;
+
+function startAnalogies() {
+  analogyCorrect = 0; analogyTotal = 0;
+  nextAnalogy();
+}
+
+function getFilteredAnalogies() {
+  let unitVal = document.getElementById('unitFilter').value;
+  if (unitVal === 'all') return ANALOGIES;
+  let u = parseInt(unitVal);
+  let filtered = ANALOGIES.filter(a => a.unit === u);
+  return filtered.length >= 1 ? filtered : ANALOGIES;
+}
+
+function nextAnalogy() {
+  let pool = getFilteredAnalogies();
+  if (!pool.length) return;
+
+  let idx = Math.floor(Math.random() * pool.length);
+  analogyCurrent = pool[idx];
+
+  let eq = document.getElementById('analogy-equation');
+  eq.innerHTML = analogyCurrent.a + ' : ' + analogyCurrent.b + ' = ' + analogyCurrent.c + ' : <span class="analogy-blank">?</span>';
+
+  document.getElementById('analogy-score').textContent = '🧩 ' + analogyCorrect + ' / ' + analogyTotal;
+  document.getElementById('analogy-relation').textContent = '';
+  document.getElementById('analogy-unit').textContent = 'יחידה ' + analogyCurrent.unit;
+  document.getElementById('analogy-feedback').style.display = 'none';
+  document.getElementById('analogy-next').style.display = 'none';
+
+  let options = shuffle([analogyCurrent.d, ...analogyCurrent.wrong]);
+  let optDiv = document.getElementById('analogy-options');
+  optDiv.innerHTML = '';
+  options.forEach(o => {
+    let btn = document.createElement('button');
+    btn.className = 'analogy-option';
+    btn.textContent = o;
+    btn.onclick = () => answerAnalogy(o, btn, optDiv);
+    optDiv.appendChild(btn);
+  });
+}
+
+function answerAnalogy(selected, btn, optDiv) {
+  analogyTotal++;
+  let correct = selected === analogyCurrent.d;
+
+  optDiv.querySelectorAll('.analogy-option').forEach(b => {
+    b.classList.add('disabled');
+    if (b.textContent === analogyCurrent.d) b.classList.add('correct');
+  });
+
+  if (correct) {
+    analogyCorrect++;
+    btn.classList.add('correct');
+  } else {
+    btn.classList.add('wrong');
+  }
+
+  document.getElementById('analogy-score').textContent = '🧩 ' + analogyCorrect + ' / ' + analogyTotal;
+
+  // Update equation to show the answer
+  document.getElementById('analogy-equation').innerHTML =
+    analogyCurrent.a + ' : ' + analogyCurrent.b + ' = ' + analogyCurrent.c + ' : <strong style="color:var(--success)">' + analogyCurrent.d + '</strong>';
+
+  let relName = RELATION_NAMES[analogyCurrent.type] || analogyCurrent.type;
+  document.getElementById('analogy-relation').textContent = '🔗 סוג הקשר: ' + relName;
+
+  let fb = document.getElementById('analogy-feedback');
+  fb.style.display = 'block';
+  fb.className = 'analogy-feedback ' + (correct ? 'correct' : 'wrong');
+  fb.innerHTML = (correct ? '✅ נכון!' : '❌ לא נכון') +
+    '<br>' + analogyCurrent.a + ' ← ' + analogyCurrent.b + ' (כמו) ' + analogyCurrent.c + ' ← ' + analogyCurrent.d;
+
+  document.getElementById('analogy-next').style.display = 'block';
+
+  // Save analogy stats
+  let key = sKey('analogy_stats');
+  let stats = JSON.parse(localStorage.getItem(key) || '{"correct":0,"total":0}');
+  if (correct) stats.correct++;
+  stats.total++;
+  localStorage.setItem(key, JSON.stringify(stats));
+}
+
 // Keyboard
 document.addEventListener('keydown', e => {
   if (currentMode === 'flashcards') {
@@ -747,6 +995,17 @@ document.addEventListener('keydown', e => {
     if (e.key === 'ArrowRight') prevUnknown();
     if (e.key === '1') rateUnknown(0);
     if (e.key === '2') rateUnknown(2);
+  }
+  if (currentMode === 'analogies') {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      if (document.getElementById('analogy-next').style.display !== 'none') nextAnalogy();
+    }
+    if (['1','2','3','4'].includes(e.key)) {
+      let opts = document.querySelectorAll('.analogy-option:not(.disabled)');
+      let idx = parseInt(e.key) - 1;
+      if (opts[idx]) opts[idx].click();
+    }
   }
 });
 
