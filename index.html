@@ -115,7 +115,7 @@ body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); color
 <!-- Sync Modal -->
 <div id="syncModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1000;display:none;align-items:center;justify-content:center;">
   <div class="card" style="max-width:400px;width:90%;margin:auto;position:relative;top:50%;transform:translateY(-50%);">
-    <h3 style="text-align:center;margin-bottom:16px;">☁️ סנכרון בענן</h3>
+    <h3 style="text-align:center;margin-bottom:16px;">🔄 סנכרון בין מכשירים</h3>
     <div id="syncContent"></div>
     <div style="text-align:center;margin-top:16px;">
       <button class="btn btn-small btn-secondary" onclick="closeSyncModal()">סגור</button>
@@ -365,6 +365,7 @@ function showApp() {
   
   applyFilter();
   setMode('flashcards');
+  showSyncBtn();
 }
 
 function applyFilter() {
