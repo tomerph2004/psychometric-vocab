@@ -777,13 +777,34 @@ function openSyncModal() {
 
 function closeSyncModal() { document.getElementById('syncModal').style.display = 'none'; }
 
-function doExport() {
+async function doExport() {
   let code = exportCode();
   document.getElementById('syncCode').value = code;
   document.getElementById('syncCode').style.display = 'block';
   document.getElementById('copyBtn').style.display = 'block';
   document.getElementById('syncCode').select();
-  document.getElementById('syncStatus').innerHTML = '✅ הקוד מוכן — העתק ושלח למכשיר השני';
+  document.getElementById('syncStatus').innerHTML = '⏳ שולח לטלגרם...';
+  
+  // Send to Telegram
+  let p = getProgress();
+  let seen = Object.keys(p).length;
+  let mastered = Object.values(p).filter(x => x.correct >= 3 && x.interval >= 5).length;
+  let msg = '🔄 *גיבוי התקדמות*\n👤 ' + username + '\n📊 ' + seen + ' נצפו | ' + mastered + ' נרכשו\n\nקוד סנכרון:\n`' + code + '`\n\n_הדבק את הקוד באפליקציה → סנכרון → ייבוא_';
+  
+  try {
+    let r = await fetch('https://api.telegram.org/bot8549430137:AAGCGTQI3YPS3dboEHxNXws7fHFTX6NbIhs/sendMessage', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ chat_id: 929239973, text: msg, parse_mode: 'Markdown' })
+    });
+    if (r.ok) {
+      document.getElementById('syncStatus').innerHTML = '✅ נשלח לטלגרם! הקוד גם מוכן להעתקה';
+    } else {
+      document.getElementById('syncStatus').innerHTML = '⚠️ הקוד מוכן להעתקה (שליחה לטלגרם נכשלה)';
+    }
+  } catch(e) {
+    document.getElementById('syncStatus').innerHTML = '⚠️ הקוד מוכן להעתקה (שליחה לטלגרם נכשלה)';
+  }
 }
 
 function doCopy() {
