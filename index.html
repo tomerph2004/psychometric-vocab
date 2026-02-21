@@ -789,27 +789,25 @@ async function doExport() {
   let p = getProgress();
   let seen = Object.keys(p).length;
   let mastered = Object.values(p).filter(x => x.correct >= 3 && x.interval >= 5).length;
-  let msg = '🔄 *גיבוי התקדמות*\n👤 ' + username + '\n📊 ' + seen + ' נצפו | ' + mastered + ' נרכשו\n\nקוד סנכרון:\n`' + code + '`\n\n_הדבק את הקוד באפליקציה → סנכרון → ייבוא_';
+  let summary = '🔄 גיבוי התקדמות\n👤 ' + username + '\n📊 ' + seen + ' נצפו | ' + mastered + ' נרכשו';
   
-  // Send via Telegram Bot API using JSONP-style workaround for Safari
+  // Send via Telegram: summary + code as separate message
+  let botUrl = 'https://api.telegram.org/bot8549430137:AAGCGTQI3YPS3dboEHxNXws7fHFTX6NbIhs/sendMessage?chat_id=929239973&text=';
   try {
-    let encoded = encodeURIComponent(msg);
-    let url = 'https://api.telegram.org/bot8549430137:AAGCGTQI3YPS3dboEHxNXws7fHFTX6NbIhs/sendMessage?chat_id=929239973&parse_mode=Markdown&text=' + encoded;
-    let r = await fetch(url);
+    let r = await fetch(botUrl + encodeURIComponent(summary));
+    await fetch(botUrl + encodeURIComponent(code));
     if (r.ok) {
-      document.getElementById('syncStatus').innerHTML = '✅ נשלח לטלגרם! הקוד גם מוכן להעתקה';
+      document.getElementById('syncStatus').innerHTML = '✅ נשלח לטלגרם!';
     } else {
-      document.getElementById('syncStatus').innerHTML = '⚠️ הקוד מוכן להעתקה (שליחה לטלגרם נכשלה)';
+      document.getElementById('syncStatus').innerHTML = '⚠️ הקוד מוכן להעתקה';
     }
   } catch(e) {
-    // Fallback: try with an img tag (fire-and-forget)
     try {
-      let encoded = encodeURIComponent(msg.replace(/[*_`]/g, ''));
-      let img = new Image();
-      img.src = 'https://api.telegram.org/bot8549430137:AAGCGTQI3YPS3dboEHxNXws7fHFTX6NbIhs/sendMessage?chat_id=929239973&text=' + encoded;
-      document.getElementById('syncStatus').innerHTML = '✅ הקוד מוכן להעתקה (נשלח לטלגרם)';
+      new Image().src = botUrl + encodeURIComponent(summary);
+      new Image().src = botUrl + encodeURIComponent(code);
+      document.getElementById('syncStatus').innerHTML = '✅ נשלח לטלגרם!';
     } catch(e2) {
-      document.getElementById('syncStatus').innerHTML = '⚠️ הקוד מוכן להעתקה (שליחה לטלגרם נכשלה)';
+      document.getElementById('syncStatus').innerHTML = '⚠️ הקוד מוכן להעתקה';
     }
   }
 }
