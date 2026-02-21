@@ -709,16 +709,7 @@ if (localStorage.getItem('theme') === 'light') {
   document.getElementById('themeToggle').textContent = '🌞';
 }
 
-// ============ CLOUD SYNC ============
-let syncDebounceTimer = null;
-const SYNC_DEBOUNCE_MS = 30000;
-
-function getSyncId() { return localStorage.getItem(username + '_syncId'); }
-function setSyncId(id) { localStorage.setItem(username + '_syncId', id); }
-
-function showSyncBtn() {
-  document.getElementById('syncBtn').style.display = username ? 'inline-block' : 'none';
-}
+// ============ SYNC (Copy/Paste Code) ============
 
 function getProgressSnapshot() {
   return {
@@ -734,145 +725,95 @@ function restoreFromSnapshot(data) {
   if (data.mistakes) setMistakes(data.mistakes);
 }
 
-async function uploadSync() {
-  let syncId = getSyncId();
+function exportCode() {
   let data = getProgressSnapshot();
-  let body = JSON.stringify(data);
+  // Compress: only save words with actual progress
+  let slim = { p: {}, m: data.mistakes.map(w => w.word), t: data.timestamp };
+  for (let [k, v] of Object.entries(data.progress)) {
+    if (v.correct || v.wrong) slim.p[k] = [v.correct, v.wrong, v.interval || 0];
+  }
+  return btoa(unescape(encodeURIComponent(JSON.stringify(slim))));
+}
+
+function importCode(code) {
   try {
-    if (syncId) {
-      let r = await fetch('https://jsonblob.com/api/jsonBlob/' + syncId, {
-        method: 'PUT',
-        headers: {'Content-Type':'application/json', 'Accept':'application/json'},
-        body: body
-      });
-      if (!r.ok) throw new Error('Upload failed: ' + r.status);
-    } else {
-      let r = await fetch('https://jsonblob.com/api/jsonBlob', {
-        method: 'POST',
-        headers: {'Content-Type':'application/json', 'Accept':'application/json'},
-        body: body
-      });
-      if (!r.ok) throw new Error('Create failed: ' + r.status);
-      let blobId = r.headers.get('x-jsonblob-id') || r.headers.get('X-jsonblob-id');
-      if (!blobId) {
-        let loc = r.headers.get('Location') || r.headers.get('location');
-        if (loc) blobId = loc.split('/').pop();
-      }
-      if (!blobId) throw new Error('לא הצלחתי לקבל מזהה סנכרון');
-      syncId = blobId;
-      setSyncId(syncId);
+    let slim = JSON.parse(decodeURIComponent(escape(atob(code.trim()))));
+    let progress = {};
+    for (let [k, v] of Object.entries(slim.p)) {
+      progress[k] = { correct: v[0], wrong: v[1], interval: v[2], lastSeen: slim.t, nextReview: Date.now() };
     }
+    let mistakes = slim.m ? VOCAB.filter(w => slim.m.includes(w.word)) : [];
+    restoreFromSnapshot({ progress, mistakes });
     return true;
-  } catch(e) { console.error('Sync error:', e); throw e; }
+  } catch(e) { console.error('Import error:', e); return false; }
 }
-
-async function downloadSync() {
-  let syncId = getSyncId();
-  if (!syncId) return false;
-  try {
-    let r = await fetch('https://jsonblob.com/api/jsonBlob/' + syncId);
-    if (!r.ok) throw new Error('Download failed');
-    let data = await r.json();
-    restoreFromSnapshot(data);
-    return true;
-  } catch(e) { console.error('Sync download error:', e); return false; }
-}
-
-function scheduleSyncUpload() {
-  if (!getSyncId()) return;
-  if (syncDebounceTimer) clearTimeout(syncDebounceTimer);
-  syncDebounceTimer = setTimeout(async () => {
-    await uploadSync();
-    console.log('Auto-synced to cloud');
-  }, SYNC_DEBOUNCE_MS);
-}
-
-// Patch setProgress and setMistakes to trigger auto-sync
-const _origSetProgress = setProgress;
-setProgress = function(p) { _origSetProgress(p); scheduleSyncUpload(); };
-const _origSetMistakes = setMistakes;
-setMistakes = function(m) { _origSetMistakes(m); scheduleSyncUpload(); };
 
 function openSyncModal() {
   let modal = document.getElementById('syncModal');
   modal.style.display = 'block';
-  let syncId = getSyncId();
-  let html = '';
-  if (syncId) {
-    html += '<p style="text-align:center;margin-bottom:12px;">מזהה סנכרון:</p>';
-    html += '<div style="display:flex;gap:8px;align-items:center;justify-content:center;margin-bottom:16px;">';
-    html += '<input type="text" value="' + syncId + '" readonly style="padding:8px;border-radius:8px;border:1px solid var(--border);background:var(--bg2);color:var(--text);font-size:0.85em;width:220px;text-align:center;" id="syncIdDisplay">';
-    html += '<button class="btn btn-small btn-secondary" onclick="navigator.clipboard.writeText(document.getElementById(\'syncIdDisplay\').value);this.textContent=\'✓\'">📋</button>';
-    html += '</div>';
-    html += '<div style="display:flex;gap:8px;justify-content:center;">';
-    html += '<button class="btn btn-primary" onclick="doUpload()">📤 העלה</button>';
-    html += '<button class="btn btn-success" onclick="doDownload()">📥 הורד</button>';
-    html += '</div>';
-    html += '<div style="text-align:center;margin-top:12px;">';
-    html += '<button class="btn btn-small btn-error" onclick="if(confirm(\'לנתק סנכרון?\')){localStorage.removeItem(username+\'_syncId\');openSyncModal();}">נתק סנכרון</button>';
-    html += '</div>';
-  } else {
-    html += '<p style="text-align:center;margin-bottom:12px;">שמור את ההתקדמות שלך בענן כדי לסנכרן בין מכשירים</p>';
-    html += '<div style="display:flex;flex-direction:column;gap:12px;align-items:center;">';
-    html += '<button class="btn btn-primary" onclick="doFirstUpload()">📤 שמור בענן</button>';
-    html += '<div style="text-align:center;"><p style="font-size:0.9em;opacity:0.7;margin-bottom:8px;">או הזן מזהה סנכרון קיים:</p>';
-    html += '<div style="display:flex;gap:8px;justify-content:center;"><input type="text" id="importSyncId" placeholder="מזהה סנכרון" style="padding:8px;border-radius:8px;border:1px solid var(--border);background:var(--bg2);color:var(--text);width:200px;text-align:center;">';
-    html += '<button class="btn btn-small btn-success" onclick="doImportSync()">📥 טען</button></div></div>';
-    html += '</div>';
-  }
+  let p = getProgress();
+  let seen = Object.keys(p).length;
+  
+  let html = '<p style="text-align:center;margin-bottom:16px;">סנכרון בין מכשירים באמצעות קוד</p>';
+  
+  // Export
+  html += '<div style="margin-bottom:16px;">';
+  html += '<button class="btn btn-primary" style="width:100%;margin-bottom:8px;" onclick="doExport()">📤 ייצוא התקדמות (' + seen + ' מילים)</button>';
+  html += '<textarea id="syncCode" readonly style="width:100%;height:80px;padding:8px;border-radius:8px;border:1px solid var(--border);background:var(--bg2);color:var(--text);font-size:0.75em;font-family:monospace;direction:ltr;display:none;resize:none;" onclick="this.select()"></textarea>';
+  html += '<button id="copyBtn" class="btn btn-small btn-secondary" style="width:100%;margin-top:4px;display:none;" onclick="doCopy()">📋 העתק קוד</button>';
+  html += '</div>';
+  
+  // Import
+  html += '<div style="border-top:1px solid var(--border);padding-top:16px;">';
+  html += '<p style="font-size:0.9em;opacity:0.7;margin-bottom:8px;text-align:center;">או הדבק קוד ממכשיר אחר:</p>';
+  html += '<textarea id="importCode" placeholder="הדבק קוד כאן..." style="width:100%;height:80px;padding:8px;border-radius:8px;border:1px solid var(--border);background:var(--bg2);color:var(--text);font-size:0.75em;font-family:monospace;direction:ltr;resize:none;"></textarea>';
+  html += '<button class="btn btn-success" style="width:100%;margin-top:8px;" onclick="doImport()">📥 ייבוא</button>';
+  html += '</div>';
+  
   html += '<div id="syncStatus" style="text-align:center;margin-top:12px;font-size:0.9em;"></div>';
   document.getElementById('syncContent').innerHTML = html;
 }
 
 function closeSyncModal() { document.getElementById('syncModal').style.display = 'none'; }
 
-async function doFirstUpload() {
-  document.getElementById('syncStatus').textContent = '⏳ שומר...';
-  try {
-    await uploadSync();
-    document.getElementById('syncStatus').innerHTML = '✅ נשמר!';
-    setTimeout(() => openSyncModal(), 500);
-  } catch(e) {
-    console.error('First upload error:', e);
-    document.getElementById('syncStatus').innerHTML = '❌ ' + (e.message || 'שגיאה') + '<br><pre style="font-size:0.7em;text-align:left;direction:ltr;max-height:150px;overflow:auto;background:var(--bg);padding:8px;border-radius:8px;margin-top:8px;">' + (e.stack || e) + '</pre>';
+function doExport() {
+  let code = exportCode();
+  document.getElementById('syncCode').value = code;
+  document.getElementById('syncCode').style.display = 'block';
+  document.getElementById('copyBtn').style.display = 'block';
+  document.getElementById('syncCode').select();
+  document.getElementById('syncStatus').innerHTML = '✅ הקוד מוכן — העתק ושלח למכשיר השני';
+}
+
+function doCopy() {
+  let code = document.getElementById('syncCode').value;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(code).then(() => {
+      document.getElementById('copyBtn').textContent = '✓ הועתק!';
+      setTimeout(() => { document.getElementById('copyBtn').textContent = '📋 העתק קוד'; }, 2000);
+    });
+  } else {
+    document.getElementById('syncCode').select();
+    document.execCommand('copy');
+    document.getElementById('copyBtn').textContent = '✓ הועתק!';
   }
 }
 
-async function doUpload() {
-  document.getElementById('syncStatus').textContent = '⏳ מעלה...';
-  let ok = await uploadSync();
-  document.getElementById('syncStatus').innerHTML = ok ? '✅ הועלה!' : '❌ שגיאה';
-}
-
-async function doDownload() {
-  document.getElementById('syncStatus').textContent = '⏳ מוריד...';
-  let ok = await downloadSync();
-  if (ok) { document.getElementById('syncStatus').innerHTML = '✅ הורד! מרענן...'; setTimeout(() => { applyFilter(); closeSyncModal(); }, 1000); }
-  else document.getElementById('syncStatus').innerHTML = '❌ שגיאה';
-}
-
-async function doImportSync() {
-  let id = document.getElementById('importSyncId').value.trim();
-  if (!id) return;
-  setSyncId(id);
-  document.getElementById('syncStatus').textContent = '⏳ טוען...';
-  let ok = await downloadSync();
-  if (ok) { document.getElementById('syncStatus').innerHTML = '✅ נטען! מרענן...'; setTimeout(() => { applyFilter(); openSyncModal(); }, 1000); }
-  else { document.getElementById('syncStatus').innerHTML = '❌ מזהה לא תקין'; localStorage.removeItem(username + '_syncId'); }
-}
-
-// Auto-download on login
-const _origShowApp = showApp;
-showApp = async function() {
-  _origShowApp();
-  showSyncBtn();
-  let syncId = getSyncId();
-  if (syncId) {
-    console.log('Auto-downloading sync data...');
-    await downloadSync();
-    applyFilter();
+function doImport() {
+  let code = document.getElementById('importCode').value.trim();
+  if (!code) { document.getElementById('syncStatus').innerHTML = '❌ הדבק קוד קודם'; return; }
+  let ok = importCode(code);
+  if (ok) {
+    document.getElementById('syncStatus').innerHTML = '✅ יובא בהצלחה! מרענן...';
+    setTimeout(() => { applyFilter(); closeSyncModal(); }, 1000);
+  } else {
+    document.getElementById('syncStatus').innerHTML = '❌ קוד לא תקין';
   }
-};
+}
+
+function showSyncBtn() {
+  document.getElementById('syncBtn').style.display = username ? 'inline-block' : 'none';
+}
 
 // ============ END CLOUD SYNC ============
 
