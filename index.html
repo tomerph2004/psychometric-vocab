@@ -109,6 +109,7 @@ body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); color
     <button class="btn btn-small btn-secondary" id="switchUserBtn" onclick="switchUser()">החלף משתמש</button>
     <button class="btn btn-small btn-primary" id="themeToggle" onclick="toggleTheme()">🌙</button>
     <button class="btn btn-small btn-success" id="syncBtn" onclick="openSyncModal()" style="display:none;">☁️ סנכרון</button>
+    <button class="btn btn-small btn-secondary" onclick="shareLink()">🔗</button>
   </div>
 </div>
 
@@ -835,6 +836,17 @@ function doImport() {
     setTimeout(() => { applyFilter(); closeSyncModal(); }, 1000);
   } else {
     document.getElementById('syncStatus').innerHTML = '❌ קוד לא תקין';
+  }
+}
+
+function shareLink() {
+  let url = 'https://tomerph2004.github.io/psychometric-vocab/';
+  if (navigator.share) {
+    navigator.share({ title: 'עושר לשוני - אוצר מילים פסיכומטרי', url: url });
+  } else if (navigator.clipboard) {
+    navigator.clipboard.writeText(url).then(() => alert('הקישור הועתק!'));
+  } else {
+    prompt('העתק את הקישור:', url);
   }
 }
 
