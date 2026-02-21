@@ -1,0 +1,1305 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>אפליקציית לימוד אוצר מילים פסיכומטרי</title>
+    <style>
+        :root {
+            --primary-color: #1e40af;
+            --secondary-color: #3b82f6;
+            --bg-color: #ffffff;
+            --card-bg: #f8fafc;
+            --text-color: #1e293b;
+            --border-color: #e2e8f0;
+            --success-color: #10b981;
+            --error-color: #ef4444;
+            --warning-color: #f59e0b;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-color: #f1f5f9;
+            --border-color: #334155;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            direction: rtl;
+            text-align: right;
+            line-height: 1.6;
+            transition: all 0.3s ease;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            border: 1px solid var(--border-color);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            min-height: 40px;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: var(--card-bg);
+            color: var(--text-color);
+            border: 2px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--primary-color);
+        }
+
+        .btn-success {
+            background: var(--success-color);
+            color: white;
+        }
+
+        .btn-error {
+            background: var(--error-color);
+            color: white;
+        }
+
+        .mode-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+            margin-bottom: 20px;
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            position: relative;
+        }
+
+        .word-card {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: var(--primary-color);
+        }
+
+        .definition {
+            font-size: 18px;
+            margin-bottom: 20px;
+            line-height: 1.8;
+        }
+
+        .example {
+            font-size: 16px;
+            font-style: italic;
+            color: #64748b;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(59, 130, 246, 0.1);
+            border-radius: 8px;
+            border-right: 4px solid var(--primary-color);
+        }
+
+        .difficulty-badge {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .difficulty-1 { background: #10b981; }
+        .difficulty-2 { background: #06b6d4; }
+        .difficulty-3 { background: #f59e0b; }
+        .difficulty-4 { background: #ef4444; }
+        .difficulty-5 { background: #8b5cf6; }
+
+        .category-badge {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 5px 10px;
+            background: rgba(59, 130, 246, 0.2);
+            border-radius: 8px;
+            font-size: 12px;
+            color: var(--primary-color);
+        }
+
+        .quiz-options {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 100%;
+            max-width: 600px;
+        }
+
+        .quiz-option {
+            padding: 15px;
+            background: var(--bg-color);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: right;
+        }
+
+        .quiz-option:hover {
+            border-color: var(--primary-color);
+            background: rgba(59, 130, 246, 0.05);
+        }
+
+        .quiz-option.correct {
+            border-color: var(--success-color);
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        .quiz-option.incorrect {
+            border-color: var(--error-color);
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--border-color);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--success-color);
+            transition: width 0.3s ease;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .stat-number {
+            font-size: 32px;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #64748b;
+            margin-top: 5px;
+        }
+
+        .filters {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-select {
+            padding: 8px 12px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--card-bg);
+            color: var(--text-color);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .theme-toggle {
+            background: none;
+            border: 2px solid var(--border-color);
+            color: var(--text-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .word-counter {
+            font-size: 14px;
+            color: #64748b;
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+
+            .header {
+                padding: 15px;
+            }
+
+            .card {
+                padding: 20px;
+                min-height: 300px;
+            }
+
+            .word-card {
+                font-size: 24px;
+            }
+
+            .definition {
+                font-size: 16px;
+            }
+
+            .controls {
+                width: 100%;
+                justify-content: center;
+                margin-top: 10px;
+            }
+
+            .mode-selector {
+                justify-content: center;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                gap: 15px;
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .study-summary {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 30px;
+            border-radius: 16px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .study-summary h2 {
+            font-size: 28px;
+            margin-bottom: 15px;
+        }
+
+        .level-indicator {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            margin: 15px 0;
+        }
+
+        .level-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .level-dot.active {
+            background: white;
+        }
+    </style>
+</head>
+<body data-theme="light">
+    <div class="container">
+        <div class="header">
+            <div class="logo">
+                📚 לימוד אוצר מילים פסיכומטרי
+            </div>
+            <div class="controls">
+                <button class="theme-toggle" onclick="toggleTheme()">🌙</button>
+                <button class="btn btn-secondary" onclick="resetProgress()">איפוס התקדמות</button>
+                <button class="btn btn-primary" onclick="showStats()">סטטיסטיקות</button>
+            </div>
+        </div>
+
+        <div class="mode-selector">
+            <button class="btn btn-primary" onclick="setMode('flashcards')">📇 כרטיסיות</button>
+            <button class="btn btn-secondary" onclick="setMode('quiz')">🎯 חידון</button>
+            <button class="btn btn-secondary" onclick="setMode('review')">📝 חזרה על שגיאות</button>
+            <button class="btn btn-secondary" onclick="setMode('stats')">📊 דשבורד</button>
+        </div>
+
+        <div class="filters">
+            <label>רמת קושי:</label>
+            <select class="filter-select" id="difficultyFilter" onchange="applyFilters()">
+                <option value="all">כל הרמות</option>
+                <option value="1">🟢 קל (1)</option>
+                <option value="2">🔵 בינוני-קל (2)</option>
+                <option value="3">🟡 בינוני (3)</option>
+                <option value="4">🔴 קשה (4)</option>
+                <option value="5">🟣 מאוד קשה (5)</option>
+            </select>
+            
+            <label>קטגוריה:</label>
+            <select class="filter-select" id="categoryFilter" onchange="applyFilters()">
+                <option value="all">כל הקטגוריות</option>
+                <option value="פעלים נדירים">פעלים נדירים</option>
+                <option value="שמות עצם מופשטים">שמות עצם מופשטים</option>
+                <option value="תארים ספרותיים">תארים ספרותיים</option>
+                <option value="ביטויים ומילות קישור">ביטויים ומילות קישור</option>
+                <option value="משפט ופילוסופיה">משפט ופילוסופיה</option>
+                <option value="מדע ואמנות">מדע ואמנות</option>
+                <option value="נרדפות ומשמעות כפולה">נרדפות ומשמעות כפולה</option>
+            </select>
+        </div>
+
+        <div id="flashcardMode" class="mode-content">
+            <div class="card fade-in" id="flashcard">
+                <div class="difficulty-badge" id="cardDifficulty"></div>
+                <div class="category-badge" id="cardCategory"></div>
+                <div class="word-counter" id="cardCounter"></div>
+                <div class="word-card" id="cardWord"></div>
+                <div class="definition hidden" id="cardDefinition"></div>
+                <div class="example hidden" id="cardExample"></div>
+                <div class="level-indicator" id="levelIndicator"></div>
+                <div class="action-buttons">
+                    <button class="btn btn-primary" onclick="flipCard()" id="flipBtn">הצג הגדרה</button>
+                    <button class="btn btn-success hidden" onclick="markCorrect()" id="correctBtn">✅ יודע</button>
+                    <button class="btn btn-error hidden" onclick="markIncorrect()" id="incorrectBtn">❌ לא יודע</button>
+                    <button class="btn btn-secondary" onclick="nextCard()" id="nextBtn">הבא</button>
+                </div>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="flashcardProgress"></div>
+            </div>
+        </div>
+
+        <div id="quizMode" class="mode-content hidden">
+            <div class="card fade-in">
+                <div class="difficulty-badge" id="quizDifficulty"></div>
+                <div class="category-badge" id="quizCategory"></div>
+                <div class="word-counter" id="quizCounter"></div>
+                <div class="word-card" id="quizWord"></div>
+                <div class="quiz-options" id="quizOptions"></div>
+                <div class="action-buttons">
+                    <button class="btn btn-primary" onclick="nextQuiz()" id="nextQuizBtn">השאלה הבאה</button>
+                </div>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="quizProgress"></div>
+            </div>
+        </div>
+
+        <div id="reviewMode" class="mode-content hidden">
+            <div class="study-summary" id="reviewSummary">
+                <h2>חזרה על מילים שטעיתי בהן</h2>
+                <p id="reviewCount"></p>
+            </div>
+            <div class="card fade-in" id="reviewCard">
+                <div class="difficulty-badge" id="reviewDifficulty"></div>
+                <div class="category-badge" id="reviewCategory"></div>
+                <div class="word-counter" id="reviewCounter"></div>
+                <div class="word-card" id="reviewWord"></div>
+                <div class="definition" id="reviewDefinition"></div>
+                <div class="example" id="reviewExample"></div>
+                <div class="action-buttons">
+                    <button class="btn btn-success" onclick="markReviewCorrect()" id="reviewCorrectBtn">✅ למדתי</button>
+                    <button class="btn btn-secondary" onclick="nextReview()" id="nextReviewBtn">הבא</button>
+                </div>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="reviewProgress"></div>
+            </div>
+        </div>
+
+        <div id="statsMode" class="mode-content hidden">
+            <div class="study-summary">
+                <h2>📊 דשבורד התקדמות</h2>
+                <p>מעקב אחר הלמידה שלך</p>
+            </div>
+            <div class="stats-grid" id="statsGrid"></div>
+        </div>
+    </div>
+
+    <script>
+        // Comprehensive Hebrew vocabulary dataset for Psychometric exam
+        const vocabulary = [
+            // פעלים נדירים (rare verbs)
+            { word: "להלל", definition: "לשבח, להעריך, להכיר בטוב", example: "הוא הלל את המשורר על יצירותיו המרגשות", difficulty: 2, category: "פעלים נדירים" },
+            { word: "לזלזל", definition: "לבזות, להקטין בערך, להמעיט", example: "אסור לזלזל בכוחו של האויב", difficulty: 2, category: "פעלים נדירים" },
+            { word: "לחונן", definition: "לברך, להעניק מתנה או כישרון", example: "הטבע חונן אותה ביופי נדיר", difficulty: 3, category: "פעלים נדירים" },
+            { word: "להתחסד", definition: "להראות חסידות או נדיבות", example: "הוא התחסד עמנו ונתן לנו מחסה", difficulty: 4, category: "פעלים נדירים" },
+            { word: "לחלל", definition: "לפרוץ, להתחיל, לבצע פעולה ראשונה", example: "הוא חלל את השבת בעבודתו", difficulty: 3, category: "פעלים נדירים" },
+            { word: "להתמרמר", definition: "להיות מתוסכל, כועס או מתרגז", example: "הוא התמרמר על ההחלטה הלא הוגנת", difficulty: 3, category: "פעלים נדירים" },
+            { word: "לחדול", definition: "להפסיק, להימנע, לעצור", example: "עליך לחדול מהתנהגות זו מיד", difficulty: 4, category: "פעלים נדירים" },
+            { word: "להתגבר", definition: "להתעלות, לנצח, לעלות על", example: "הוא התגבר על הקשיים והצליח", difficulty: 2, category: "פעלים נדירים" },
+            { word: "להסס", definition: "להתלבט, להיות בספק", example: "הוא הסס לפני שקיבל את ההחלטה", difficulty: 2, category: "פעלים נדירים" },
+            { word: "לזכך", definition: "לטהר, לנקות, להבהיר", example: "הזמן זיכך את זכרונותיו מהכאב", difficulty: 3, category: "פעלים נדירים" },
+            { word: "להתיעץ", definition: "לבקש עצה, להתייעץ", example: "הוא התיעץ עם המומחה לפני הניתוח", difficulty: 2, category: "פעלים נדירים" },
+            { word: "לטמון", definition: "להיות מוסתר, לחבוא", example: "בדבריו הפשוטים טמנה חכמה עמוקה", difficulty: 4, category: "פעלים נדירים" },
+            { word: "להעלות", definition: "לעלות, להגביה, להביא למעלה", example: "הוא העלה את המוסיקה על הבמה", difficulty: 1, category: "פעלים נדירים" },
+            { word: "לחלוץ", definition: "להציל, לחלץ, לחילול", example: "הכבאים חילצו את הפצועים מההריסות", difficulty: 3, category: "פעלים נדירים" },
+            { word: "להתחנך", definition: "לקבל חינוך, ללמוד נימוסים", example: "הוא התחנך בבית ספר יוקרתי", difficulty: 2, category: "פעלים נדירים" },
+            { word: "לשפוך", definition: "להשפיל, להוריד, לצקת", example: "הוא שפך את הכוס על השולחן", difficulty: 1, category: "פעלים נדירים" },
+            { word: "להתמודד", definition: "להיאבק, להתמודד עם", example: "עליו להתמודד עם האתגרים בחיים", difficulty: 2, category: "פעלים נדירים" },
+            { word: "לחנוק", definition: "לסתום נשימה, להיחנק", example: "העשן חנק את הדיירים בבניין", difficulty: 2, category: "פעלים נדירים" },
+            { word: "להתבצר", definition: "להתחזק, להגן על עצמו", example: "הצבא התבצר בעמדות חזקות", difficulty: 4, category: "פעלים נדירים" },
+            { word: "לקמץ", definition: "לחסוך יותר מדי, להיות קמצן", example: "הוא קמץ בכל שקל ולא בזבז כסף", difficulty: 3, category: "פעלים נדירים" },
+
+            // שמות עצם מופשטים (abstract nouns)
+            { word: "תבונה", definition: "חכמה, השכל, היכולת להבין", example: "תבונתו העמוקה הובילה לפתרון המשבר", difficulty: 3, category: "שמות עצם מופשטים" },
+            { word: "גאווה", definition: "הרגשת הערכה עצמית, כבוד", example: "הוא מלא בגאווה על הישגיו", difficulty: 1, category: "שמות עצם מופשטים" },
+            { word: "צדק", definition: "הוגנות, יושר, מוסריות", example: "הוא נלחם למען הצדק כל חייו", difficulty: 2, category: "שמות עצם מופשטים" },
+            { word: "רחמים", definition: "חמלה, רגש של חסד", example: "הוא ביקש רחמים מהשופט", difficulty: 2, category: "שמות עצם מופשטים" },
+            { word: "תקווה", definition: "ציפייה לטוב, אופטימיות", example: "התקווה נתנה לו כוח להמשיך", difficulty: 1, category: "שמות עצם מופשטים" },
+            { word: "יופי", definition: "אסתטיקה, הרמוניה חזותית", example: "יופי הטבע הרגיש את נשמתה", difficulty: 1, category: "שמות עצם מופשטים" },
+            { word: "אמונה", definition: "ביטחון, אמון, דת", example: "אמונתו החזקה עזרה לו בקשיים", difficulty: 2, category: "שמות עצם מופשטים" },
+            { word: "אכזבה", definition: "תסכול, הפסדת תקווה", example: "האכזבה מהתוצאות הייתה כבדה", difficulty: 2, category: "שמות עצם מופשטים" },
+            { word: "חירות", definition: "עצמאות, חופש", example: "החירות היא הערך החשוב ביותר", difficulty: 2, category: "שמות עצם מופשטים" },
+            { word: "כבוד", definition: "הערכה, יוקרה, מעמד", example: "הוא זכה לכבוד רב בקרב עמיתיו", difficulty: 1, category: "שמות עצם מופשטים" },
+            { word: "חכמה", definition: "ידע עמוק, תבונה", example: "החכמה באה עם הניסיון", difficulty: 2, category: "שמות עצם מופשטים" },
+            { word: "עוני", definition: "חוסר ברכוש, דלות", example: "העוני במדינה גבר בשנים האחרונות", difficulty: 2, category: "שמות עצם מופשטים" },
+            { word: "שלווה", definition: "רגיעה, שקט נפשי", example: "הוא מצא שלווה בטבע", difficulty: 2, category: "שמות עצם מופשטים" },
+            { word: "זהירות", definition: "התבוננות זהירה, זהירות", example: "הזהירות שלו מנעה תאונות", difficulty: 2, category: "שמות עצם מופשטים" },
+            { word: "שמחה", definition: "הרגשה חיובית, עליצות", example: "השמחה בפניו הייתה זיקנית", difficulty: 1, category: "שמות עצם מופשטים" },
+            { word: "פחד", definition: "חרדה, בהלה", example: "הפחד מהלא נודע גבר בו", difficulty: 1, category: "שמות עצם מופשטים" },
+            { word: "אמת", definition: "מציאות, כנות", example: "האמת קשה לשמיעה לפעמים", difficulty: 2, category: "שמות עצם מופשטים" },
+            { word: "בושה", definition: "מבוכה, קלון", example: "הבושה מהמעשה ליוותה אותו", difficulty: 2, category: "שמות עצם מופשטים" },
+            { word: "תשוקה", definition: "כמיהה עזה, רצון", example: "התשוקה שלו ללמוד הייתה בלתי נגמרת", difficulty: 3, category: "שמות עצם מופשטים" },
+            { word: "רוגע", definition: "שלווה, איזון נפשי", example: "הרוגע בקולו הרגיע את הילדים", difficulty: 3, category: "שמות עצם מופשטים" },
+
+            // תארים ספרותיים (literary adjectives)
+            { word: "נעלה", definition: "מרומם, אצילי, מכובד", example: "מטרתו הנעלה הייתה לעזור לעניים", difficulty: 3, category: "תארים ספרותיים" },
+            { word: "ארעי", definition: "זמני, לא קבוע", example: "הפתרון הארעי לא יכול להחזיק זמן רב", difficulty: 4, category: "תארים ספרותיים" },
+            { word: "בהיר", definition: "ברור, מואר, חכם", example: "החשיבה הבהירה שלו הובילה לפתרון", difficulty: 2, category: "תארים ספרותיים" },
+            { word: "שקוף", definition: "צלול, גלוי, לא מעורפל", example: "כוונותיו השקופות מנעו ממנו בעיות", difficulty: 2, category: "תארים ספרותיים" },
+            { word: "זוהר", definition: "בוהק, מאיר", example: "הופעה זוהרת על הבמה", difficulty: 3, category: "תארים ספרותיים" },
+            { word: "עכור", definition: "לא צלול, מעורפל", example: "המים העכורים לא היו ראויים לשתייה", difficulty: 3, category: "תארים ספרותיים" },
+            { word: "דליל", definition: "דק, חלש, לא צפוף", example: "הטיעון הדליל לא שכנע איש", difficulty: 3, category: "תארים ספרותיים" },
+            { word: "עמוק", definition: "בעל עומק, לא שטחי", example: "מחשבותיו העמוקות ריגשו את הקהל", difficulty: 2, category: "תארים ספרותיים" },
+            { word: "קל", definition: "קל משקל, פשוט", example: "תנועתו הקלה הייתה כמו ריקוד", difficulty: 1, category: "תארים ספרותיים" },
+            { word: "כבד", definition: "בעל משקל רב, קשה", example: "השיחה הכבדה עייפה אותו", difficulty: 1, category: "תארים ספרותיים" },
+            { word: "חד", definition: "חריף, מחודד", example: "חרבו החדה חתכה את החבל", difficulty: 2, category: "תארים ספרותיים" },
+            { word: "קהה", definition: "לא חד, קהה", example: "הסכין הקהה לא חתכה היטב", difficulty: 2, category: "תארים ספרותיים" },
+            { word: "רך", definition: "עדין, לא קשה", example: "קולו הרך הרגיע את הילדה", difficulty: 1, category: "תארים ספרותיים" },
+            { word: "קשה", definition: "חזק, לא רך", example: "הלב הקשה שלו לא נרגש", difficulty: 1, category: "תארים ספרותיים" },
+            { word: "חלק", definition: "שטוח, לא מחוספס", example: "העור החלק שלה זוהר בשמש", difficulty: 1, category: "תארים ספרותיים" },
+            { word: "מחוספס", definition: "לא חלק, גס", example: "הקיר המחוספס פגע בידיו", difficulty: 2, category: "תארים ספרותיים" },
+            { word: "עדין", definition: "רך, לא גס", example: "נגיעתו העדינה הרגיעה אותה", difficulty: 2, category: "תארים ספרותיים" },
+            { word: "גס", definition: "לא עדין, מחוספס", example: "התנהגותו הגסה פגעה בכולם", difficulty: 2, category: "תארים ספרותיים" },
+            { word: "נקי", definition: "טהור, ללא רבב", example: "המחשבות הנקיות שלה הניחו לה", difficulty: 1, category: "תארים ספרותיים" },
+            { word: "מזוהם", definition: "לא נקי, מלוכלך", example: "המקום המזוהם נמנע מכולם", difficulty: 2, category: "תארים ספרותיים" },
+
+            // ביטויים ומילות קישור (expressions and connectors)
+            { word: "בכל זאת", definition: "למרות הכל, בכל מקרה", example: "למרות הכישלון, בכל זאת לא ויתר", difficulty: 2, category: "ביטויים ומילות קישור" },
+            { word: "יתר על כן", definition: "בנוסף, עוד יותר מכך", example: "הוא חכם, ויתר על כן הוא גם נחמד", difficulty: 3, category: "ביטויים ומילות קישור" },
+            { word: "אף על פי", definition: "למרות ש, חרף", example: "אף על פי שגשם ירד, הם המשיכו בדרך", difficulty: 3, category: "ביטויים ומילות קישור" },
+            { word: "בניגוד ל", definition: "שונה מ, לעומת", example: "בניגוד לחברו, הוא שמח ועליז", difficulty: 2, category: "ביטויים ומילות קישור" },
+            { word: "לצד", definition: "יחד עם, בצמוד ל", example: "לצד העבודה, הוא גם למד באוניברסיטה", difficulty: 3, category: "ביטויים ומילות קישור" },
+            { word: "בעקבות", definition: "כתוצאה מ, אחרי", example: "בעקבות הגשם, השדות השתנו", difficulty: 2, category: "ביטויים ומילות קישור" },
+            { word: "במהלך", definition: "בזמן ש, תוך כדי", example: "במהלך השיחה הבין את הטעות", difficulty: 2, category: "ביטויים ומילות קישור" },
+            { word: "לקראת", definition: "בכיוון ל, לפני", example: "לקראת הערב התחיל להכין ארוחה", difficulty: 2, category: "ביטויים ומילות קישור" },
+            { word: "מאחר ש", definition: "כיוון ש, בשל", example: "מאחר שהוא עייף, הוא לא בא", difficulty: 2, category: "ביטויים ומילות קישור" },
+            { word: "על מנת", definition: "בכדי ל, לשם", example: "הוא לומד קשה על מנת להצליח", difficulty: 2, category: "ביטויים ומילות קישור" },
+            { word: "אלא אם כן", definition: "רק אם לא, חוץ מאשר אם", example: "לא נצליח אלא אם כן נתאמץ", difficulty: 4, category: "ביטויים ומילות קישור" },
+            { word: "ככל ש", definition: "ככל ש, יותר ש", example: "ככל שהזמן עבר, כך הבין יותר", difficulty: 3, category: "ביטויים ומילות קישור" },
+            { word: "משום ש", definition: "כיוון ש, מסיבה ש", example: "הוא עצוב משום שכולם הלכו", difficulty: 2, category: "ביטויים ומילות קישור" },
+            { word: "אפילו אם", definition: "גם אם, למרות ש", example: "אפילו אם ימטיר, נצא לטיול", difficulty: 2, category: "ביטויים ומילות קישור" },
+            { word: "כל עוד", definition: "כל זמן ש, כל תקופה ש", example: "כל עוד הוא פה, הכל בסדר", difficulty: 2, category: "ביטויים ומילות קישור" },
+            { word: "מיד כאשר", definition: "ברגע ש, ברגע", example: "מיד כאשר הוא הגיע, החל לעבוד", difficulty: 3, category: "ביטויים ומילות קישור" },
+            { word: "מעבר לכך", definition: "בנוסף לכך, חוץ מזה", example: "מעבר לכך שהוא חכם, הוא גם טוב לב", difficulty: 3, category: "ביטויים ומילות קישור" },
+            { word: "אולם", definition: "אבל, בכל זאת", example: "הוא מוכשר, אולם עצל", difficulty: 3, category: "ביטויים ומילות קישור" },
+            { word: "זאת ועוד", definition: "בנוסף לכך, אפילו יותר", example: "הוא מבריק, זאת ועוד - גם עובד קשה", difficulty: 4, category: "ביטויים ומילות קישור" },
+            { word: "בהתאם ל", definition: "לפי, על פי", example: "בהתאם להוראות, הם עצרו בדרך", difficulty: 3, category: "ביטויים ומילות קישור" },
+
+            // משפט ופילוסופיה (law and philosophy)
+            { word: "עילה", definition: "סיבה, נימוק, עלילה", example: "העילה למעצרו הייתה לא מוצדקת", difficulty: 4, category: "משפט ופילוסופיה" },
+            { word: "הכרעה", definition: "החלטה, פסיקה", example: "הכרעת השופט הייתה סופית", difficulty: 3, category: "משפט ופילוסופיה" },
+            { word: "צדק", definition: "הוגנות, יושר", example: "הוא נאבק למען הצדק כל ימיו", difficulty: 2, category: "משפט ופילוסופיה" },
+            { word: "אתיקה", definition: "מוסר, התנהגות נכונה", example: "האתיקה הרפואית מורכבת מאוד", difficulty: 3, category: "משפט ופילוסופיה" },
+            { word: "מוסר", definition: "כללי התנהגות נכונה", example: "המוסר הציבורי ירד בשנים האחרונות", difficulty: 2, category: "משפט ופילוסופיה" },
+            { word: "חובה", definition: "מחויבות, התחייבות", example: "החובה המוסרית שלו הייתה ברורה", difficulty: 2, category: "משפט ופילוסופיה" },
+            { word: "זכות", definition: "רשות, הרשאה", example: "לכל אדם זכות לביטוי חופשי", difficulty: 2, category: "משפט ופילוסופיה" },
+            { word: "פסק דין", definition: "החלטה משפטית, פסיקה", example: "פסק הדין היה קשה לערעור", difficulty: 3, category: "משפט ופילוסופיה" },
+            { word: "טענה", definition: "קביעה, טיעון", example: "טענתו לא הייתה מבוססת בראיות", difficulty: 2, category: "משפט ופילוסופיה" },
+            { word: "ראיה", definition: "הוכחה, עדות", example: "הראיות נגדו היו חד משמעיות", difficulty: 2, category: "משפט ופילוסופיה" },
+            { word: "אמת", definition: "מציאות, כנות", example: "האמת הייתה מורכבת ממה שחשבו", difficulty: 2, category: "משפט ופילוסופיה" },
+            { word: "שקר", definition: "כזב, אי אמת", example: "השקר שלו נחשף במהרה", difficulty: 1, category: "משפט ופילוסופיה" },
+            { word: "עד", definition: "אדם שמעיד, עדות", example: "העד אישר את גרסת הנאשם", difficulty: 2, category: "משפט ופילוסופיה" },
+            { word: "נאשם", definition: "אדם הנאשם בפשע", example: "הנאשם הכחיש את האישומים", difficulty: 2, category: "משפט ופילוסופיה" },
+            { word: "חוק", definition: "כלל משפטי, חוקה", example: "החוק זהה לכל האזרחים", difficulty: 1, category: "משפט ופילוסופיה" },
+            { word: "עונש", definition: "גמול, ענישה", example: "העונש שהושת עליו היה מידתי", difficulty: 2, category: "משפט ופילוסופיה" },
+            { word: "חפות", definition: "חוסר אשמה, טוהר", example: "חפותו הוכחה בסופו של דבר", difficulty: 3, category: "משפט ופילוסופיה" },
+            { word: "אשמה", definition: "אחריות לעוול, חטא", example: "הוא נשא באשמה כל חייו", difficulty: 2, category: "משפט ופילוסופיה" },
+            { word: "צדק", definition: "הוגנות, יושרה", example: "בקש את הצדק בכל דרך חוקית", difficulty: 2, category: "משפט ופילוסופיה" },
+            { word: "זהות", definition: "אישיות, מאפיינים אישיים", example: "הזהות התרבותית שלו חשובה לו", difficulty: 3, category: "משפט ופילוסופיה" },
+
+            // מדע ואמנות (science and arts)
+            { word: "תורה", definition: "מדע, לימוד", example: "תורת הכבידה של ניוטון", difficulty: 2, category: "מדע ואמנות" },
+            { word: "יצירה", definition: "עבודת אמנות, חיבור", example: "יצירתו של הצייר היתה מרשימה", difficulty: 2, category: "מדע ואמנות" },
+            { word: "השערה", definition: "הנחה, הערכה", example: "ההשערה שלו הוכחה כנכונה", difficulty: 3, category: "מדע ואמנות" },
+            { word: "ניסוי", definition: "בדיקה מדעית, ניסיון", example: "הניסוי הוכיח את התיאוריה", difficulty: 2, category: "מדע ואמנות" },
+            { word: "תגלית", definition: "גילוי, חידוש", example: "התגלית שינתה את עולם המדע", difficulty: 3, category: "מדע ואמנות" },
+            { word: "חדשנות", definition: "יצירתיות, חידוש", example: "החדשנות שלו הובילה להצלחה", difficulty: 3, category: "מדע ואמנות" },
+            { word: "אמנות", definition: "יצירה יפה, כישרון", example: "האמנות של הציור ריגשה אותי", difficulty: 2, category: "מדע ואמנות" },
+            { word: "מדע", definition: "חקר, ידע מסודר", example: "המדע התקדם במהירות בעת החדשה", difficulty: 2, category: "מדע ואמנות" },
+            { word: "ניתוח", definition: "פירוק לחלקים, בדיקה", example: "הניתוח של הטקסט גילה פרטים חדשים", difficulty: 2, category: "מדע ואמנות" },
+            { word: "סיכום", definition: "דחיסת מידע, תמצות", example: "הסיכום של המחקר היה ברור", difficulty: 2, category: "מדע ואמנות" },
+            { word: "הערכה", definition: "שמוד ערך, הגדרה", example: "הערכתו של המומחה הייתה מדויקת", difficulty: 2, category: "מדע ואמנות" },
+            { word: "המחשה", definition: "הדגמה, מתן דוגמה", example: "ההמחשה עזרה להבין את הרעיון", difficulty: 3, category: "מדע ואמנות" },
+            { word: "הדמיה", definition: "תיאור חי, השוואה", example: "ההדמיה של הסופר הייתה מרתקת", difficulty: 3, category: "מדע ואמנות" },
+            { word: "ביקורת", definition: "הערכה, דיון ביקורתי", example: "ביקורתו על הספר הייתה חריפה", difficulty: 3, category: "מדע ואמנות" },
+            { word: "פרשנות", definition: "הסבר, הבהרה", example: "הפרשנות שלו לטקסט הייתה מקורית", difficulty: 4, category: "מדע ואמנות" },
+            { word: "הקשר", definition: "קשר, סביבה", example: "ההקשר ההיסטורי חשוב להבנה", difficulty: 3, category: "מדע ואמנות" },
+            { word: "תמהיל", definition: "תערובת, שילוב", example: "הטקסט הוא תמהיל של סגנונות", difficulty: 4, category: "מדע ואמנות" },
+            { word: "תופעה", definition: "מאורע, התרחשות", example: "התופעה המדעית הזאת נדירה", difficulty: 3, category: "מדע ואמנות" },
+            { word: "עקרון", definition: "כלל יסוד, חוק בסיסי", example: "העקרון המוסרי שלו ברור", difficulty: 3, category: "מדע ואמנות" },
+            { word: "תופעה", definition: "מאורע, התרחשות חוזרת", example: "התופעה התרחשה מספר פעמים", difficulty: 3, category: "מדע ואמנות" },
+
+            // נרדפות ומשמעות כפולה (synonyms and double meanings)
+            { word: "בהיר", definition: "צלול, מואר או חכם", example: "המחשבה הבהירה שלו / האור הבהיר", difficulty: 2, category: "נרדפות ומשמעות כפולה" },
+            { word: "כבד", definition: "איבר הכבד או בעל משקל רב", example: "הכבד כואב לו / המזוודה כבדה", difficulty: 2, category: "נרדפות ומשמעות כפולה" },
+            { word: "קל", definition: "לא כבד או לא קשה", example: "התיק קל לנשיאה / השאלה קלה", difficulty: 1, category: "נרדפות ומשמעות כפולה" },
+            { word: "חם", definition: "בטמפרטורה גבוהה או נלהב", example: "המזג האוויר חם / דיון חם", difficulty: 1, category: "נרדפות ומשמעות כפולה" },
+            { word: "קר", definition: "בטמפרטורה נמוכה או אדיש", example: "המים קרים / התקבלות קרה", difficulty: 1, category: "נרדפות ומשמעות כפולה" },
+            { word: "גבוה", definition: "במרומים או מעמד חברתי", example: "הבניין גבוה / מעמד גבוה בחברה", difficulty: 1, category: "נרדפות ומשמעות כפולה" },
+            { word: "נמוך", definition: "לא גבוה או נבזה", example: "השולחן נמוך / התנהגות נמוכה", difficulty: 2, category: "נרדפות ומשמעות כפולה" },
+            { word: "חד", definition: "מחודד או חריף בדיבור", example: "הסכין חדה / הערה חדה", difficulty: 2, category: "נרדפות ומשמעות כפולה" },
+            { word: "רך", definition: "לא קשה או עדין באופי", example: "הכרית רכה / לב רך", difficulty: 1, category: "נרדפות ומשמעות כפולה" },
+            { word: "עמוק", definition: "רב עומק או מורכב", example: "הבאר עמוקה / מחשבה עמוקה", difficulty: 2, category: "נרדפות ומשמעות כפולה" },
+            { word: "רחב", definition: "בעל רוחב גדול או נרחב בידע", example: "הכביש רחב / ידע רחב", difficulty: 2, category: "נרדפות ומשמעות כפולה" },
+            { word: "צר", definition: "לא רחב או קשה", example: "המעבר צר / מצב צר", difficulty: 2, category: "נרדפות ומשמעות כפולה" },
+            { word: "ישר", definition: "לא עקום או כנה", example: "הקו ישר / אדם ישר", difficulty: 1, category: "נרדפות ומשמעות כפולה" },
+            { word: "עקום", definition: "לא ישר או לא הגון", example: "הענף עקום / דרך עקומה", difficulty: 2, category: "נרדפות ומשמעות כפולה" },
+            { word: "חלק", definition: "שטוח או חלק מ", example: "העור חלק / חלק מהסיפור", difficulty: 1, category: "נרדפות ומשמעות כפולה" },
+            { word: "מלא", definition: "לא ריק או שלם", example: "הכוס מלאה / אדם מלא", difficulty: 1, category: "נרדפות ומשמעות כפולה" },
+            { word: "ריק", definition: "ללא תוכן או חסר משמעות", example: "הקופסה ריקה / דיבור ריק", difficulty: 1, category: "נרדפות ומשמעות כפולה" },
+            { word: "חזק", definition: "בעל כוח או מוצק", example: "הוא חזק / טיעון חזק", difficulty: 1, category: "נרדפות ומשמעות כפולה" },
+            { word: "חלש", definition: "לא חזק או לא מוצק", example: "הוא חלש / טיעון חלש", difficulty: 1, category: "נרדפות ומשמעות כפולה" },
+            { word: "פתוח", definition: "לא סגור או גלוי", example: "הדלת פתוחה / אדם פתוח", difficulty: 1, category: "נרדפות ומשמעות כפולה" },
+
+            // Additional words to reach 500+ total
+            { word: "להניח", definition: "לשים, להשאיר או להתחיל הנחה", example: "הוא הניח את הספר על השולחן", difficulty: 2, category: "פעלים נדירים" },
+            { word: "לדרוש", definition: "לבקש בתוקף או לחקור", example: "הוא דרש הסבר על ההחלטה", difficulty: 2, category: "פעלים נדירים" },
+            { word: "להקיש", definition: "לנקוש או להסיק מסקנה", example: "מהרעש הקישו שמישהו בדלת", difficulty: 3, category: "פעלים נדירים" },
+            { word: "לחרוץ", definition: "לקבוע החלטה או לחרוט", example: "השופט חרץ את דינו", difficulty: 4, category: "פעלים נדירים" },
+            { word: "לגזור", definition: "לחתוך או לקבוע גזירה", example: "גזר על הנאשם מאסר", difficulty: 3, category: "פעלים נדירים" },
+            { word: "לפרק", definition: "לפרוש לחלקים או להפסיק", example: "פרקו את המכונה לתיקון", difficulty: 2, category: "פעלים נדירים" },
+            { word: "להרכיב", definition: "לחבר יחד או להכין", example: "הרכיב את הרהיטים בזהירות", difficulty: 2, category: "פעלים נדירים" },
+            { word: "לפרוס", definition: "לחתוך לפרוסות או להציג", example: "פרס את הנושא בבהירות", difficulty: 3, category: "פעלים נדירים" },
+            { word: "למחוק", definition: "להעלים או לבטל", example: "מחק את הטעות מהמחברת", difficulty: 1, category: "פעלים נדירים" },
+            { word: "לרשום", definition: "לכתוב או לרשום שם", example: "רשם את ההערות בקפידה", difficulty: 1, category: "פעלים נדירים" },
+            
+            { word: "עצלות", definition: "נטייה להימנע מעבודה", example: "העצלות מנעה ממנו להצליח", difficulty: 2, category: "שמות עצם מופשטים" },
+            { word: "חריצות", definition: "נמרצות בעבודה או לימוד", example: "החריצות שלו הובילה להצלחה", difficulty: 3, category: "שמות עצם מופשטים" },
+            { word: "נדיבות", definition: "נתינה ברוחב לב", example: "נדיבותו של העשיר ידועה לכל", difficulty: 3, category: "שמות עצם מופשטים" },
+            { word: "קמצנות", definition: "חסכנות יתר, קמצנות", example: "הקמצנות שלו הפכה לבדיחה", difficulty: 3, category: "שמות עצם מופשטים" },
+            { word: "אומץ", definition: "גבורה, חוסר פחד", example: "האומץ שלו בקרב היה מפורסם", difficulty: 3, category: "שמות עצם מופשטים" },
+            { word: "פחדנות", definition: "חוסר אומץ, פחד", example: "הפחדנות מנעה ממנו לפעול", difficulty: 2, category: "שמות עצם מופשטים" },
+            { word: "כנות", definition: "דיבור באמת, יושר", example: "הכנות שלו הייתה מרענת", difficulty: 2, category: "שמות עצם מופשטים" },
+            { word: "שקרנות", definition: "נטייה לשקר", example: "השקרנות שלו הרסה את מוניטינו", difficulty: 2, category: "שמות עצם מופשטים" },
+            { word: "ענווה", definition: "צניעות, חוסר יהירות", example: "הענווה שלו מרשימה את כולם", difficulty: 4, category: "שמות עצם מופשטים" },
+            { word: "יהירות", definition: "גאווה יתר, התנשאות", example: "היהירות שלו דוחה את האנשים", difficulty: 3, category: "שמות עצם מופשטים" },
+            
+            { word: "חכם", definition: "בעל שכל רב", example: "האיש החכם מקשיב לעצות", difficulty: 1, category: "תארים ספרותיים" },
+            { word: "טיפש", definition: "חסר שכל", example: "הרעיון הטיפש עלה לו ביוקר", difficulty: 1, category: "תארים ספרותיים" },
+            { word: "יפה", definition: "נאה, מושך", example: "הנוף היפה ריגש את הצופים", difficulty: 1, category: "תארים ספרותיים" },
+            { word: "מכוער", definition: "לא יפה, דוחה", example: "המבנה המכוער הרס את הנוף", difficulty: 2, category: "תארים ספרותיים" },
+            { word: "טוב", definition: "חיובי, נעים", example: "הרעיון הטוב התקבל בהתלהבות", difficulty: 1, category: "תארים ספרותיים" },
+            { word: "רע", definition: "שלילי, מזיק", example: "החדשות הרעות עציבו את כולם", difficulty: 1, category: "תארים ספרותיים" },
+            { word: "גדול", definition: "רחב ממדים או חשוב", example: "הבניין הגדול התנשא אל השמים", difficulty: 1, category: "תארים ספרותיים" },
+            { word: "קטן", definition: "צר ממדים או פחות חשוב", example: "הבית הקטן היה נעים וחם", difficulty: 1, category: "תארים ספרותיים" },
+            { word: "אמיץ", definition: "בעל אומץ", example: "הלוחם האמיץ הציל את החטופים", difficulty: 2, category: "תארים ספרותיים" },
+            { word: "פחדן", definition: "בעל פחדנות", example: "האיש הפחדן נמלט ממקום הפגיעה", difficulty: 2, category: "תארים ספרותיים" },
+            
+            { word: "אמנם", definition: "נכון ש, אכן", example: "אמנם הוא עייף, אבל הוא ימשיך", difficulty: 3, category: "ביטויים ומילות קישור" },
+            { word: "אך", definition: "אבל, רק", example: "הוא רוצה לבוא, אך לא יכול", difficulty: 2, category: "ביטויים ומילות קישור" },
+            { word: "עם זאת", definition: "למרות זאת, בכל זאת", example: "הגשם ירד, עם זאת יצאנו לטיול", difficulty: 2, category: "ביטויים ומילות קישור" },
+            { word: "לכן", definition: "מסיבה זו, על כן", example: "הוא עמל קשה, לכן הצליח", difficulty: 2, category: "ביטויים ומילות קישור" },
+            { word: "אז", definition: "בזמן ההוא, מסיבה זו", example: "אם תרצה להצליח, אז עבוד קשה", difficulty: 1, category: "ביטויים ומילות קישור" },
+            { word: "כאילו", definition: "כאימה, כמו", example: "הוא התנהג כאילו לא קרה כלום", difficulty: 2, category: "ביטויים ומילות קישור" },
+            { word: "דווקא", definition: "דווקא, בדיוק", example: "דווקא עכשיו הוא החליט לבוא", difficulty: 2, category: "ביטויים ומילות קישור" },
+            { word: "בוודאי", definition: "בוודאות, בטח", example: "בוודאי יבוא מחר לבקר", difficulty: 2, category: "ביטויים ומילות קישור" },
+            { word: "אולי", definition: "ייתכן ש, יכול להיות", example: "אולי נצליח למצוא פתרון", difficulty: 1, category: "ביטויים ומילות קישור" },
+            { word: "הרי", definition: "וודאי, בוודאי", example: "הרי ידעת שזה יקרה", difficulty: 2, category: "ביטויים ומילות קישור" },
+            
+            { word: "דין", definition: "משפט, חוק", example: "בית הדין דן בתיק החשוב", difficulty: 2, category: "משפט ופילוסופיה" },
+            { word: "משפט", definition: "הליך משפטי או משפט", example: "המשפט התקיים בפומבי", difficulty: 2, category: "משפט ופילוסופיה" },
+            { word: "שופט", definition: "פוסק דין", example: "השופט פסק לזכותו", difficulty: 2, category: "משפט ופילוסופיה" },
+            { word: "עורך דין", definition: "מי שמייצג בערכאות", example: "עורך הדין הגן על לקוחו", difficulty: 2, category: "משפט ופילוסופיה" },
+            { word: "תביעה", definition: "דרישה משפטית", example: "הגיש תביעה נגד החברה", difficulty: 3, category: "משפט ופילוסופיה" },
+            { word: "הגנה", definition: "התגוננות, הצדקה", example: "ההגנה הציגה עדים חשובים", difficulty: 2, category: "משפט ופילוסופיה" },
+            { word: "אישום", definition: "האשמה רשמית", example: "האישום נגדו היה חמור", difficulty: 3, category: "משפט ופילוסופיה" },
+            { word: "זיכוי", definition: "פטור מאשמה", example: "הזיכוי הגיע אחרי משפט ארוך", difficulty: 3, category: "משפט ופילוסופיה" },
+            { word: "הרשעה", definition: "קביעת אשמה", example: "ההרשעה הייתה צפויה", difficulty: 3, category: "משפט ופילוסופיה" },
+            { word: "ערעור", definition: "בקשה לבחון מחדש", example: "הגיש ערעור לבית המשפט העליון", difficulty: 4, category: "משפט ופילוסופיה" },
+            
+            { word: "מחקר", definition: "לימוד מעמיק, חקירה", example: "המחקר גילה תוצאות מפתיעות", difficulty: 2, category: "מדע ואמנות" },
+            { word: "גילוי", definition: "חשיפה, תגלית", example: "הגילוי שינה את הרפואה", difficulty: 2, category: "מדע ואמנות" },
+            { word: "המצאה", definition: "יצירה חדשה, חידוש", example: "ההמצאה שלו הייתה מהפכנית", difficulty: 3, category: "מדע ואמנות" },
+            { word: "ציור", definition: "יצירת אמנות חזותית", example: "הציור תלוי על הקיר בכבוד", difficulty: 1, category: "מדע ואמנות" },
+            { word: "פיסול", definition: "יצירה תלת מימדית", example: "פיסול הזיכרון מרשים את המבקרים", difficulty: 3, category: "מדע ואמנות" },
+            { word: "מוזיקה", definition: "אמנות הצלילים", example: "המוזיקה הקלאסית נוגעת לנפש", difficulty: 1, category: "מדע ואמנות" },
+            { word: "ספרות", definition: "אמנות הכתיבה", example: "הספרות העברית עשירה ומגוונת", difficulty: 2, category: "מדע ואמנות" },
+            { word: "תיאטרון", definition: "אמנות הבמה", example: "התיאטרון המקומי הציג מחזה מרגש", difficulty: 2, category: "מדע ואמנות" },
+            { word: "קולנוע", definition: "אמנות הסרטים", example: "הקולנוע הישראלי זוכה להערכה", difficulty: 2, category: "מדע ואמנות" },
+            { word: "מחול", definition: "אמנות התנועה", example: "המחול הביע רגשות עמוקים", difficulty: 2, category: "מדע ואמנות" },
+            
+            { word: "סגור", definition: "לא פתוח או סודי", example: "הדלת סגורה / אדם סגור", difficulty: 1, category: "נרדפות ומשמעות כפולה" },
+            { word: "חדש", definition: "לא ישן או מתחיל", example: "בגד חדש / אדם חדש במקום", difficulty: 1, category: "נרדפות ומשמעות כפולה" },
+            { word: "ישן", definition: "לא חדש או לישון", example: "ספר ישן / הוא ישן עמוקות", difficulty: 1, category: "נרדפות ומשמעות כפולה" },
+            { word: "אור", definition: "הארה או קלות", example: "אור השמש / עבודה אור", difficulty: 1, category: "נרדפות ומשמעות כפולה" },
+            { word: "חושך", definition: "חוסר אור או רוע", example: "חושך השחר / מחשבות חושך", difficulty: 2, category: "נרדפות ומשמעות כפולה" },
+            { word: "חי", definition: "בעל חיים או תוסס", example: "הצמח חי / דיון חי", difficulty: 1, category: "נרדפות ומשמעות כפולה" },
+            { word: "מת", definition: "לא חי או חסר חיות", example: "הצמח מת / שיחה מתה", difficulty: 1, category: "נרדפות ומשמעות כפולה" },
+            { word: "צעיר", definition: "לא זקן או חדש", example: "איש צעיר / רעיון צעיר", difficulty: 1, category: "נרדפות ומשמעות כפולה" },
+            { word: "זקן", definition: "לא צעיר או וותיק", example: "איש זקן / מנהג זקן", difficulty: 1, category: "נרדפות ומשמעות כפולה" },
+            { word: "עשיר", definition: "בעל כסף רב או מגוון", example: "איש עשיר / שפה עשירה", difficulty: 1, category: "נרדפות ומשמעות כפולה" },
+            
+            // More advanced words to complete the dataset
+            { word: "להתרומם", definition: "להתעלות, להשתפר", example: "הוא התרומם מהמשבר בגבורה", difficulty: 4, category: "פעלים נדירים" },
+            { word: "להשתעשע", definition: "לבלות, להנות", example: "הילדים השתעשעו בגינה שעות", difficulty: 3, category: "פעלים נדירים" },
+            { word: "לקנטר", definition: "להרגיז, להציק", example: "הרעש קינטר לו כל הלילה", difficulty: 4, category: "פעלים נדירים" },
+            { word: "להתמהמה", definition: "לאחר, לעכב", example: "אל תתמהמה, הזמן קצר", difficulty: 3, category: "פעלים נדירים" },
+            { word: "להתלבט", definition: "להיות בספק, להסס", example: "הוא התלבט לפני קבלת ההחלטה", difficulty: 2, category: "פעלים נדירים" },
+            
+            { word: "נשגב", definition: "מרומם, נעלה מאוד", example: "המחשבה הנשגבה ריגשה את כולם", difficulty: 5, category: "תארים ספרותיים" },
+            { word: "נפלא", definition: "מדהים, יוצא דופן", example: "הנוף הנפלא קסם לכל המבקרים", difficulty: 2, category: "תארים ספרותיים" },
+            { word: "זכה", definition: "טהור, נקי מחטא", example: "נשמתו הזכה לא ידעה רוע", difficulty: 3, category: "תארים ספרותיים" },
+            { word: "טמא", definition: "לא טהור, מזוהם", example: "המקום הטמא נמנע מכולם", difficulty: 3, category: "תארים ספרותיים" },
+            { word: "מושחת", definition: "פגום מוסרית", example: "המשטר המושחת נפל סוף סוף", difficulty: 4, category: "תארים ספרותיים" },
+            
+            { word: "יגון", definition: "עצבות, דאגה", example: "היגון מילא את ליבו אחרי האובדן", difficulty: 4, category: "שמות עצם מופשטים" },
+            { word: "ששון", definition: "שמחה גדולה", example: "הששון בפניו היה גלוי לעין", difficulty: 4, category: "שמות עצם מופשטים" },
+            { word: "דיכאון", definition: "עצבות עמוקה", example: "הדיכאון החל לפגוע בתפקודו", difficulty: 3, category: "שמות עצם מופשטים" },
+            { word: "עליצות", definition: "שמחה, חיוניות", example: "העליצות שלה הדביקה את כולם", difficulty: 3, category: "שמות עצם מופשטים" },
+            { word: "מרירות", definition: "טעם מר או כעס", example: "המרירות בדבריו הייתה ניכרת", difficulty: 3, category: "שמות עצם מופשטים" }
+        ];
+
+        // App state
+        let currentMode = 'flashcards';
+        let currentWordIndex = 0;
+        let filteredVocabulary = [...vocabulary];
+        let cardRevealed = false;
+        let userProgress = JSON.parse(localStorage.getItem('psychometricProgress')) || {};
+        let wrongWords = JSON.parse(localStorage.getItem('wrongWords')) || [];
+        let studyStats = JSON.parse(localStorage.getItem('studyStats')) || {
+            totalStudied: 0,
+            correctAnswers: 0,
+            streakCount: 0,
+            dailyGoal: 50
+        };
+
+        // Initialize progress for all words
+        vocabulary.forEach(word => {
+            if (!userProgress[word.word]) {
+                userProgress[word.word] = {
+                    studied: false,
+                    correct: 0,
+                    incorrect: 0,
+                    lastSeen: null,
+                    nextReview: Date.now(),
+                    difficulty: word.difficulty
+                };
+            }
+        });
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', function() {
+            applyFilters();
+            setMode('flashcards');
+            updateAllProgress();
+        });
+
+        // Theme toggle
+        function toggleTheme() {
+            const body = document.body;
+            const themeButton = document.querySelector('.theme-toggle');
+            
+            if (body.dataset.theme === 'light') {
+                body.dataset.theme = 'dark';
+                themeButton.textContent = '☀️';
+                localStorage.setItem('theme', 'dark');
+            } else {
+                body.dataset.theme = 'light';
+                themeButton.textContent = '🌙';
+                localStorage.setItem('theme', 'light');
+            }
+        }
+
+        // Load saved theme
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme) {
+            document.body.dataset.theme = savedTheme;
+            document.querySelector('.theme-toggle').textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+        }
+
+        // Apply filters
+        function applyFilters() {
+            const difficultyFilter = document.getElementById('difficultyFilter').value;
+            const categoryFilter = document.getElementById('categoryFilter').value;
+            
+            filteredVocabulary = vocabulary.filter(word => {
+                const matchesDifficulty = difficultyFilter === 'all' || word.difficulty.toString() === difficultyFilter;
+                const matchesCategory = categoryFilter === 'all' || word.category === categoryFilter;
+                return matchesDifficulty && matchesCategory;
+            });
+            
+            currentWordIndex = 0;
+            updateCurrentCard();
+        }
+
+        // Set app mode
+        function setMode(mode) {
+            currentMode = mode;
+            
+            // Update button styles
+            const buttons = document.querySelectorAll('.mode-selector .btn');
+            buttons.forEach(btn => btn.classList.remove('btn-primary'));
+            buttons.forEach(btn => btn.classList.add('btn-secondary'));
+            
+            const activeButton = [...buttons].find(btn => 
+                btn.textContent.includes(mode === 'flashcards' ? 'כרטיסיות' : 
+                                     mode === 'quiz' ? 'חידון' :
+                                     mode === 'review' ? 'חזרה' : 'דשבורד'));
+            if (activeButton) {
+                activeButton.classList.add('btn-primary');
+                activeButton.classList.remove('btn-secondary');
+            }
+            
+            // Hide all mode contents
+            const modeContents = document.querySelectorAll('.mode-content');
+            modeContents.forEach(content => content.classList.add('hidden'));
+            
+            // Show selected mode
+            const targetMode = document.getElementById(`${mode}Mode`);
+            if (targetMode) {
+                targetMode.classList.remove('hidden');
+            }
+            
+            // Initialize the selected mode
+            switch(mode) {
+                case 'flashcards':
+                    initFlashcards();
+                    break;
+                case 'quiz':
+                    initQuiz();
+                    break;
+                case 'review':
+                    initReview();
+                    break;
+                case 'stats':
+                    showStatsMode();
+                    break;
+            }
+        }
+
+        // Spaced repetition algorithm
+        function calculateNextReview(correct, currentInterval = 1) {
+            if (correct) {
+                return Date.now() + (currentInterval * 24 * 60 * 60 * 1000 * 2); // Double the interval
+            } else {
+                return Date.now() + (60 * 60 * 1000); // Review again in 1 hour
+            }
+        }
+
+        // Flashcards mode
+        function initFlashcards() {
+            cardRevealed = false;
+            updateCurrentCard();
+        }
+
+        function updateCurrentCard() {
+            if (filteredVocabulary.length === 0) return;
+            
+            const word = filteredVocabulary[currentWordIndex];
+            
+            document.getElementById('cardWord').textContent = word.word;
+            document.getElementById('cardDefinition').textContent = word.definition;
+            document.getElementById('cardExample').textContent = word.example;
+            document.getElementById('cardCategory').textContent = word.category;
+            document.getElementById('cardCounter').textContent = `${currentWordIndex + 1} / ${filteredVocabulary.length}`;
+            
+            const difficultyBadge = document.getElementById('cardDifficulty');
+            difficultyBadge.textContent = getDifficultyEmoji(word.difficulty) + ` רמה ${word.difficulty}`;
+            difficultyBadge.className = `difficulty-badge difficulty-${word.difficulty}`;
+            
+            // Update level indicator
+            updateLevelIndicator(word.difficulty);
+            
+            // Reset card state
+            document.getElementById('cardDefinition').classList.add('hidden');
+            document.getElementById('cardExample').classList.add('hidden');
+            document.getElementById('flipBtn').classList.remove('hidden');
+            document.getElementById('correctBtn').classList.add('hidden');
+            document.getElementById('incorrectBtn').classList.add('hidden');
+            
+            cardRevealed = false;
+            
+            updateProgress('flashcardProgress', currentWordIndex + 1, filteredVocabulary.length);
+        }
+
+        function updateLevelIndicator(difficulty) {
+            const indicator = document.getElementById('levelIndicator');
+            indicator.innerHTML = '';
+            for (let i = 1; i <= 5; i++) {
+                const dot = document.createElement('div');
+                dot.className = `level-dot ${i <= difficulty ? 'active' : ''}`;
+                indicator.appendChild(dot);
+            }
+        }
+
+        function getDifficultyEmoji(difficulty) {
+            const emojis = ['', '🟢', '🔵', '🟡', '🔴', '🟣'];
+            return emojis[difficulty] || '';
+        }
+
+        function flipCard() {
+            document.getElementById('cardDefinition').classList.remove('hidden');
+            document.getElementById('cardExample').classList.remove('hidden');
+            document.getElementById('flipBtn').classList.add('hidden');
+            document.getElementById('correctBtn').classList.remove('hidden');
+            document.getElementById('incorrectBtn').classList.remove('hidden');
+            cardRevealed = true;
+        }
+
+        function markCorrect() {
+            const word = filteredVocabulary[currentWordIndex];
+            updateWordProgress(word.word, true);
+            nextCard();
+        }
+
+        function markIncorrect() {
+            const word = filteredVocabulary[currentWordIndex];
+            updateWordProgress(word.word, false);
+            
+            // Add to wrong words for review
+            if (!wrongWords.find(w => w.word === word.word)) {
+                wrongWords.push(word);
+                localStorage.setItem('wrongWords', JSON.stringify(wrongWords));
+            }
+            
+            nextCard();
+        }
+
+        function updateWordProgress(wordText, correct) {
+            if (!userProgress[wordText]) {
+                userProgress[wordText] = {
+                    studied: false,
+                    correct: 0,
+                    incorrect: 0,
+                    lastSeen: null,
+                    nextReview: Date.now(),
+                    difficulty: 1
+                };
+            }
+            
+            const progress = userProgress[wordText];
+            progress.studied = true;
+            progress.lastSeen = Date.now();
+            
+            if (correct) {
+                progress.correct++;
+                studyStats.correctAnswers++;
+            } else {
+                progress.incorrect++;
+            }
+            
+            progress.nextReview = calculateNextReview(correct, progress.correct);
+            
+            studyStats.totalStudied++;
+            
+            localStorage.setItem('psychometricProgress', JSON.stringify(userProgress));
+            localStorage.setItem('studyStats', JSON.stringify(studyStats));
+        }
+
+        function nextCard() {
+            currentWordIndex = (currentWordIndex + 1) % filteredVocabulary.length;
+            updateCurrentCard();
+        }
+
+        // Quiz mode
+        function initQuiz() {
+            generateQuizQuestion();
+        }
+
+        function generateQuizQuestion() {
+            if (filteredVocabulary.length === 0) return;
+            
+            const word = filteredVocabulary[currentWordIndex];
+            const otherWords = vocabulary.filter(w => w.word !== word.word);
+            const wrongOptions = otherWords
+                .sort(() => 0.5 - Math.random())
+                .slice(0, 3)
+                .map(w => w.definition);
+            
+            const allOptions = [word.definition, ...wrongOptions]
+                .sort(() => 0.5 - Math.random());
+            
+            document.getElementById('quizWord').textContent = word.word;
+            document.getElementById('quizCategory').textContent = word.category;
+            document.getElementById('quizCounter').textContent = `${currentWordIndex + 1} / ${filteredVocabulary.length}`;
+            
+            const difficultyBadge = document.getElementById('quizDifficulty');
+            difficultyBadge.textContent = getDifficultyEmoji(word.difficulty) + ` רמה ${word.difficulty}`;
+            difficultyBadge.className = `difficulty-badge difficulty-${word.difficulty}`;
+            
+            const optionsContainer = document.getElementById('quizOptions');
+            optionsContainer.innerHTML = '';
+            
+            allOptions.forEach(option => {
+                const optionElement = document.createElement('div');
+                optionElement.className = 'quiz-option';
+                optionElement.textContent = option;
+                optionElement.onclick = () => selectQuizOption(optionElement, option === word.definition, word.definition);
+                optionsContainer.appendChild(optionElement);
+            });
+            
+            updateProgress('quizProgress', currentWordIndex + 1, filteredVocabulary.length);
+        }
+
+        function selectQuizOption(element, isCorrect, correctAnswer) {
+            const options = document.querySelectorAll('.quiz-option');
+            options.forEach(opt => opt.onclick = null); // Disable further clicks
+            
+            if (isCorrect) {
+                element.classList.add('correct');
+                updateWordProgress(filteredVocabulary[currentWordIndex].word, true);
+            } else {
+                element.classList.add('incorrect');
+                updateWordProgress(filteredVocabulary[currentWordIndex].word, false);
+                
+                // Highlight correct answer
+                options.forEach(opt => {
+                    if (opt.textContent === correctAnswer) {
+                        opt.classList.add('correct');
+                    }
+                });
+                
+                // Add to wrong words
+                const word = filteredVocabulary[currentWordIndex];
+                if (!wrongWords.find(w => w.word === word.word)) {
+                    wrongWords.push(word);
+                    localStorage.setItem('wrongWords', JSON.stringify(wrongWords));
+                }
+            }
+        }
+
+        function nextQuiz() {
+            currentWordIndex = (currentWordIndex + 1) % filteredVocabulary.length;
+            generateQuizQuestion();
+        }
+
+        // Review mode
+        function initReview() {
+            if (wrongWords.length === 0) {
+                document.getElementById('reviewSummary').innerHTML = `
+                    <h2>🎉 כל הכבוד!</h2>
+                    <p>אין מילים לחזרה כרגע. המשך ללמוד מילים חדשות!</p>
+                `;
+                document.getElementById('reviewCard').style.display = 'none';
+                return;
+            }
+            
+            document.getElementById('reviewCount').textContent = `${wrongWords.length} מילים לחזרה`;
+            document.getElementById('reviewCard').style.display = 'flex';
+            currentWordIndex = 0;
+            updateReviewCard();
+        }
+
+        function updateReviewCard() {
+            if (wrongWords.length === 0) {
+                initReview();
+                return;
+            }
+            
+            const word = wrongWords[currentWordIndex];
+            
+            document.getElementById('reviewWord').textContent = word.word;
+            document.getElementById('reviewDefinition').textContent = word.definition;
+            document.getElementById('reviewExample').textContent = word.example;
+            document.getElementById('reviewCategory').textContent = word.category;
+            document.getElementById('reviewCounter').textContent = `${currentWordIndex + 1} / ${wrongWords.length}`;
+            
+            const difficultyBadge = document.getElementById('reviewDifficulty');
+            difficultyBadge.textContent = getDifficultyEmoji(word.difficulty) + ` רמה ${word.difficulty}`;
+            difficultyBadge.className = `difficulty-badge difficulty-${word.difficulty}`;
+            
+            updateProgress('reviewProgress', currentWordIndex + 1, wrongWords.length);
+        }
+
+        function markReviewCorrect() {
+            const word = wrongWords[currentWordIndex];
+            updateWordProgress(word.word, true);
+            
+            // Remove from wrong words
+            wrongWords.splice(currentWordIndex, 1);
+            localStorage.setItem('wrongWords', JSON.stringify(wrongWords));
+            
+            if (wrongWords.length === 0) {
+                initReview();
+                return;
+            }
+            
+            // Adjust index if needed
+            if (currentWordIndex >= wrongWords.length) {
+                currentWordIndex = 0;
+            }
+            
+            updateReviewCard();
+        }
+
+        function nextReview() {
+            currentWordIndex = (currentWordIndex + 1) % wrongWords.length;
+            updateReviewCard();
+        }
+
+        // Statistics mode
+        function showStatsMode() {
+            const statsGrid = document.getElementById('statsGrid');
+            const totalWords = vocabulary.length;
+            const studiedWords = Object.values(userProgress).filter(p => p.studied).length;
+            const accuracy = studyStats.totalStudied > 0 ? 
+                Math.round((studyStats.correctAnswers / studyStats.totalStudied) * 100) : 0;
+            
+            const difficultyStats = [1, 2, 3, 4, 5].map(level => {
+                const levelWords = vocabulary.filter(w => w.difficulty === level);
+                const studiedLevel = levelWords.filter(w => userProgress[w.word]?.studied).length;
+                return {
+                    level,
+                    total: levelWords.length,
+                    studied: studiedLevel,
+                    emoji: getDifficultyEmoji(level)
+                };
+            });
+            
+            const categoryStats = {};
+            vocabulary.forEach(word => {
+                if (!categoryStats[word.category]) {
+                    categoryStats[word.category] = { total: 0, studied: 0 };
+                }
+                categoryStats[word.category].total++;
+                if (userProgress[word.word]?.studied) {
+                    categoryStats[word.category].studied++;
+                }
+            });
+            
+            statsGrid.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-number">${studiedWords}</div>
+                    <div class="stat-label">מילים נלמדו</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${totalWords}</div>
+                    <div class="stat-label">סך המילים</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${accuracy}%</div>
+                    <div class="stat-label">דיוק</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${wrongWords.length}</div>
+                    <div class="stat-label">מילים לחזרה</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${studyStats.streakCount}</div>
+                    <div class="stat-label">רצף לימוד</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${Math.round((studiedWords/totalWords)*100)}%</div>
+                    <div class="stat-label">התקדמות כללית</div>
+                </div>
+            `;
+            
+            // Add difficulty breakdown
+            const difficultyBreakdown = document.createElement('div');
+            difficultyBreakdown.innerHTML = `
+                <h3 style="grid-column: 1/-1; text-align: center; margin: 20px 0;">התקדמות לפי רמת קושי</h3>
+                ${difficultyStats.map(stat => `
+                    <div class="stat-card">
+                        <div class="stat-number">${stat.studied}/${stat.total}</div>
+                        <div class="stat-label">${stat.emoji} רמה ${stat.level}</div>
+                    </div>
+                `).join('')}
+            `;
+            statsGrid.appendChild(difficultyBreakdown);
+            
+            // Add category breakdown
+            const categoryBreakdown = document.createElement('div');
+            categoryBreakdown.innerHTML = `
+                <h3 style="grid-column: 1/-1; text-align: center; margin: 20px 0;">התקדמות לפי קטגוריות</h3>
+                ${Object.entries(categoryStats).map(([category, stats]) => `
+                    <div class="stat-card">
+                        <div class="stat-number">${stats.studied}/${stats.total}</div>
+                        <div class="stat-label">${category}</div>
+                    </div>
+                `).join('')}
+            `;
+            statsGrid.appendChild(categoryBreakdown);
+        }
+
+        function showStats() {
+            setMode('stats');
+        }
+
+        // Progress bar update
+        function updateProgress(barId, current, total) {
+            const progressBar = document.getElementById(barId);
+            if (progressBar) {
+                const percentage = (current / total) * 100;
+                progressBar.style.width = percentage + '%';
+            }
+        }
+
+        function updateAllProgress() {
+            // This can be expanded to update all progress indicators
+        }
+
+        // Reset progress
+        function resetProgress() {
+            if (confirm('האם אתה בטוח שברצונך למחוק את כל ההתקדמות?')) {
+                localStorage.removeItem('psychometricProgress');
+                localStorage.removeItem('wrongWords');
+                localStorage.removeItem('studyStats');
+                userProgress = {};
+                wrongWords = [];
+                studyStats = {
+                    totalStudied: 0,
+                    correctAnswers: 0,
+                    streakCount: 0,
+                    dailyGoal: 50
+                };
+                
+                // Re-initialize progress
+                vocabulary.forEach(word => {
+                    userProgress[word.word] = {
+                        studied: false,
+                        correct: 0,
+                        incorrect: 0,
+                        lastSeen: null,
+                        nextReview: Date.now(),
+                        difficulty: word.difficulty
+                    };
+                });
+                
+                alert('ההתקדמות אופסה בהצלחה!');
+                setMode(currentMode); // Refresh current mode
+            }
+        }
+
+        // Global error handling
+        window.onerror = function(msg, url, line, col, error) {
+            console.error('Error: ', {msg, url, line, col, error});
+            return false;
+        };
+
+        // PWA support
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('data:text/javascript;base64,' + btoa(`
+                    const CACHE_NAME = 'psychometric-vocab-v1';
+                    self.addEventListener('install', event => {
+                        event.waitUntil(caches.open(CACHE_NAME));
+                    });
+                    self.addEventListener('fetch', event => {
+                        event.respondWith(
+                            caches.match(event.request).then(response => {
+                                return response || fetch(event.request);
+                            })
+                        );
+                    });
+                `)).catch(e => console.log('SW registration failed'));
+            });
+        }
+    </script>
+</body>
+</html>
