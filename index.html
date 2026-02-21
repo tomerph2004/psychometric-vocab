@@ -737,7 +737,18 @@ function toggleTheme() {
 
 // ============ ANALOGIES MODE ============
 const ANALOGIES = [
-  // Unit 1-3
+  // Unit 1
+  {a:"אדוק",b:"נאמן",c:"כביר",d:"גדול",type:"synonym",unit:1,wrong:["קטן","חלש","רחוק"]},
+  {a:"טבולה רסה",b:"לוח חלק",c:"הבל הבלים",d:"שטויות",type:"synonym",unit:1,wrong:["חוכמה","אמת","תוכן"]},
+  {a:"אגוצנטרי",b:"אנוכי",c:"אדוק",d:"מסור",type:"synonym",unit:1,wrong:["אדיש","עצלן","רופף"]},
+  {a:"אדן",b:"בסיס",c:"אברה",d:"כנף",type:"synonym",unit:1,wrong:["זנב","רגל","גוף"]},
+  {a:"יבול",b:"תנובה",c:"באור",d:"הסבר",type:"synonym",unit:1,wrong:["שאלה","בעיה","חידה"]},
+  {a:"גא",b:"יהיר",c:"בוחל",d:"מואס",type:"synonym",unit:1,wrong:["אוהב","רוצה","שמח"]},
+  {a:"חדשים לבקרים",b:"תכוף",c:"דהפקטו",d:"בפועל",type:"synonym",unit:1,wrong:["בתאוריה","בחלום","בעתיד"]},
+  {a:"האפלה",b:"החשכה",c:"הבניה",d:"חיזוק",type:"synonym",unit:1,wrong:["החלשה","הריסה","ירידה"]},
+  {a:"טוגה",b:"גלימה",c:"אבנט",d:"חגורה",type:"category",unit:1,wrong:["נעל","כובע","מכנס"]},
+  {a:"כביר",b:"גדול",c:"אובה",d:"רוצה",type:"synonym",unit:1,wrong:["שונא","מפחד","בורח"]},
+  // Unit 2-3
   {a:"אדוק",b:"נאמן",c:"סטואי",d:"אדיש",type:"synonym",unit:3,wrong:["מפוזר","רגשני","נלהב"]},
   {a:"נוטר",b:"שומר",c:"צודה",d:"אורב",type:"synonym",unit:3,wrong:["בורח","שר","רוקד"]},
   {a:"רהוט",b:"שוטף",c:"שדוף",d:"יבש",type:"synonym",unit:3,wrong:["רטוב","חם","קר"]},
@@ -910,11 +921,25 @@ function getFilteredAnalogies() {
   return filtered.length >= 1 ? filtered : ANALOGIES;
 }
 
+let analogyLastIdx = -1;
+
+function getWordDef(word) {
+  let w = VOCAB.find(v => v.word === word);
+  if (w && w.definition) {
+    let d = w.definition.replace(/["\u05B0-\u05BD\u05BF\u05C1\u05C2\u05C4\u05C5\u05C7]/g,'').trim();
+    if (d.length > 60) d = d.substring(0, 57) + '...';
+    return d;
+  }
+  return '';
+}
+
 function nextAnalogy() {
   let pool = getFilteredAnalogies();
   if (!pool.length) return;
 
   let idx = Math.floor(Math.random() * pool.length);
+  if (pool.length > 1) { while (idx === analogyLastIdx) idx = Math.floor(Math.random() * pool.length); }
+  analogyLastIdx = idx;
   analogyCurrent = pool[idx];
 
   let eq = document.getElementById('analogy-equation');
@@ -932,7 +957,9 @@ function nextAnalogy() {
   options.forEach(o => {
     let btn = document.createElement('button');
     btn.className = 'analogy-option';
-    btn.textContent = o;
+    let def = getWordDef(o);
+    btn.innerHTML = '<strong>' + o + '</strong>' + (def ? '<br><span style="font-size:0.75em;opacity:0.7;font-weight:normal">' + def + '</span>' : '');
+    btn.dataset.word = o;
     btn.onclick = () => answerAnalogy(o, btn, optDiv);
     optDiv.appendChild(btn);
   });
@@ -944,7 +971,7 @@ function answerAnalogy(selected, btn, optDiv) {
 
   optDiv.querySelectorAll('.analogy-option').forEach(b => {
     b.classList.add('disabled');
-    if (b.textContent === analogyCurrent.d) b.classList.add('correct');
+    if (b.dataset.word === analogyCurrent.d) b.classList.add('correct');
   });
 
   if (correct) {
