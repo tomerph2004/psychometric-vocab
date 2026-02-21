@@ -737,32 +737,38 @@ function restoreFromSnapshot(data) {
 async function uploadSync() {
   let syncId = getSyncId();
   let data = getProgressSnapshot();
+  let body = JSON.stringify(data);
   try {
     if (syncId) {
       let r = await fetch('https://jsonblob.com/api/jsonBlob/' + syncId, {
-        method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(data)
+        method: 'PUT',
+        headers: {'Content-Type':'application/json', 'Accept':'application/json'},
+        body: body
       });
-      if (!r.ok) throw new Error('Upload failed');
+      if (!r.ok) throw new Error('Upload failed: ' + r.status);
     } else {
       let r = await fetch('https://jsonblob.com/api/jsonBlob', {
-        method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(data)
+        method: 'POST',
+        headers: {'Content-Type':'application/json', 'Accept':'application/json'},
+        body: body
       });
       if (!r.ok) throw new Error('Create failed: ' + r.status);
-      let blobId = r.headers.get('x-jsonblob-id') || r.headers.get('X-jsonblob-id');
-      if (!blobId) {
-        let loc = r.headers.get('Location') || r.headers.get('location');
-        if (loc) blobId = loc.split('/').pop();
+      // Try multiple header names
+      let blobId = null;
+      for (let h of ['x-jsonblob-id','X-Jsonblob-Id','location','Location']) {
+        let v = r.headers.get(h);
+        if (v) { blobId = v.includes('/') ? v.split('/').pop() : v; break; }
       }
       if (!blobId) {
-        // Try to get from response URL
-        let text = await r.text();
-        throw new Error('Could not get sync ID');
+        // Fallback: parse response URL or use response
+        let j = await r.json().catch(() => null);
+        throw new Error('לא הצלחתי לקבל מזהה סנכרון. נסה שוב.');
       }
       syncId = blobId;
       setSyncId(syncId);
     }
     return true;
-  } catch(e) { console.error('Sync upload error:', e); return false; }
+  } catch(e) { console.error('Sync error:', e); throw e; }
 }
 
 async function downloadSync() {
@@ -828,11 +834,12 @@ function closeSyncModal() { document.getElementById('syncModal').style.display =
 async function doFirstUpload() {
   document.getElementById('syncStatus').textContent = '⏳ שומר...';
   try {
-    let ok = await uploadSync();
-    if (ok) { document.getElementById('syncStatus').innerHTML = '✅ נשמר!'; openSyncModal(); }
-    else document.getElementById('syncStatus').innerHTML = '❌ שגיאה — נסה שוב';
+    await uploadSync();
+    document.getElementById('syncStatus').innerHTML = '✅ נשמר!';
+    setTimeout(() => openSyncModal(), 500);
   } catch(e) {
-    document.getElementById('syncStatus').innerHTML = '❌ ' + e.message;
+    console.error('First upload error:', e);
+    document.getElementById('syncStatus').innerHTML = '❌ ' + (e.message || 'שגיאה — נסה שוב');
   }
 }
 
