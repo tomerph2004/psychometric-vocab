@@ -150,14 +150,14 @@ body::before { content:''; position:fixed; inset:0; background: radial-gradient(
 .essay-vocab-highlight { background:rgba(124,92,252,0.2); border:1px solid var(--accent2); border-radius:14px; padding:16px; margin:12px 0; }
 
 .essay-write-area { position: relative; }
-.essay-textarea { padding-left: 45px !important; }
+.essay-textarea { padding-left: 50px !important; }
 .line-numbers {
-  position: absolute; top: 0; left: 0; width: 38px; height: 100%;
+  position: absolute; top: 0; left: 0; width: 44px; height: 100%;
   background: rgba(0,0,0,0.05); border-right: 1px solid var(--border);
-  border-radius: 14px 0 0 14px; padding-top: 16px; font-size: 1.05em;
+  border-radius: 14px 0 0 14px; padding-top: 16px; font-size: 0.85em;
   line-height: 1.8; color: var(--text); opacity: 0.5; overflow: hidden;
   text-align: center; pointer-events: none; direction: ltr;
-  font-family: inherit; white-space: pre-line; z-index: 1;
+  font-family: monospace; white-space: pre-line; z-index: 1;
 }
 [data-theme="dark"] .line-numbers { background: rgba(255,255,255,0.05); }
 .essay-model { background:var(--glass); border:1px solid var(--border); border-radius:14px; padding:20px; margin:12px 0; line-height:1.8; white-space:pre-wrap; direction:rtl; }
@@ -3779,8 +3779,8 @@ function updateLineNumbers() {
   // Match textarea styling exactly
   ln.style.paddingTop = '16px';
   ln.style.lineHeight = '1.8';
-  ln.style.fontSize = '1.05em';
-  ln.style.fontFamily = 'inherit';
+  ln.style.fontSize = '0.85em';
+  ln.style.fontFamily = 'monospace';
 }
 </script>
 </body>
