@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>עושר לשוני - אוצר מילים פסיכומטרי</title>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;900&display=swap" rel="stylesheet">
 <style>
@@ -190,23 +193,11 @@ body::before { content:''; position:fixed; inset:0; background: radial-gradient(
   <h1>📚 עושר לשוני</h1>
   <div class="header-right">
     <span id="userDisplay"></span>
-    <button class="btn btn-small btn-secondary" id="switchUserBtn" onclick="switchUser()">החלף משתמש</button>
+    <button class="btn btn-small btn-secondary" id="logoutBtn" onclick="logoutUser()" style="display:none;" title="התנתק">🚪</button>
     <button class="btn btn-small btn-primary" id="themeToggle" onclick="toggleTheme()">🌙</button>
-    <button class="btn btn-small btn-success" id="syncBtn" onclick="openSyncModal()" style="display:none;">☁️ סנכרון</button>
     <button class="btn btn-small btn-secondary" onclick="shareLink()">🔗</button>
   </div>
   <div class="header-progress" id="headerProgress" style="display:none;"><div class="header-progress-fill" id="headerProgressFill" style="width:0%"></div></div>
-</div>
-
-<!-- Sync Modal -->
-<div id="syncModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1000;display:none;align-items:center;justify-content:center;">
-  <div class="card" style="max-width:400px;width:90%;margin:auto;position:relative;top:50%;transform:translateY(-50%);">
-    <h3 style="text-align:center;margin-bottom:16px;">🔄 סנכרון בין מכשירים</h3>
-    <div id="syncContent"></div>
-    <div style="text-align:center;margin-top:16px;">
-      <button class="btn btn-small btn-secondary" onclick="closeSyncModal()">סגור</button>
-    </div>
-  </div>
 </div>
 
 <div class="container">
@@ -215,8 +206,14 @@ body::before { content:''; position:fixed; inset:0; background: radial-gradient(
     <div class="welcome-emoji">📚</div>
     <h2>עושר לשוני</h2>
     <p>אוצר מילים לפסיכומטרי<br>מבוסס על הספר של אבירם פלדמן<br><strong style="color:var(--accent);">1,581 מילים · 20 יחידות</strong></p>
-    <input type="text" id="usernameInput" placeholder="הכנס שם משתמש" autofocus>
-    <button class="btn btn-primary" onclick="startApp()">התחל ללמוד</button>
+    <div id="authForm" style="display:flex;flex-direction:column;align-items:center;gap:12px;width:100%;max-width:320px;">
+      <input type="email" id="authEmail" placeholder="אימייל" autofocus style="padding:14px 24px;border-radius:14px;border:2px solid var(--border);background:var(--glass);backdrop-filter:blur(10px);color:var(--text);font-size:1.1em;text-align:center;width:100%;font-family:inherit;transition:border-color 0.3s;outline:none;direction:ltr;">
+      <input type="password" id="authPassword" placeholder="סיסמה" style="padding:14px 24px;border-radius:14px;border:2px solid var(--border);background:var(--glass);backdrop-filter:blur(10px);color:var(--text);font-size:1.1em;text-align:center;width:100%;font-family:inherit;transition:border-color 0.3s;outline:none;direction:ltr;">
+      <input type="password" id="authPasswordConfirm" placeholder="אימות סיסמה" style="padding:14px 24px;border-radius:14px;border:2px solid var(--border);background:var(--glass);backdrop-filter:blur(10px);color:var(--text);font-size:1.1em;text-align:center;width:100%;font-family:inherit;transition:border-color 0.3s;outline:none;direction:ltr;display:none;">
+      <div id="authError" style="color:var(--error);font-size:0.9em;text-align:center;display:none;"></div>
+      <button class="btn btn-primary" id="authSubmitBtn" onclick="handleAuth()" style="padding:14px 48px;font-size:1.15em;font-weight:700;border-radius:14px;width:100%;">התחברות</button>
+      <button class="btn btn-secondary btn-small" id="authToggleBtn" onclick="toggleAuthMode()" style="font-size:0.9em;">אין לך חשבון? הרשמה</button>
+    </div>
   </div>
 
   <!-- Main App -->
@@ -2485,10 +2482,146 @@ let quizCorrect = 0;
 let quizTotal = 0;
 let quizCurrent = null;
 
+// ============ FIREBASE INIT ============
+const firebaseConfig = {
+  apiKey: "AIzaSyCTH-GOo1-g1jw5PnT5u12mqlj7vOErlao",
+  authDomain: "psychometric-vocab.firebaseapp.com",
+  projectId: "psychometric-vocab",
+  storageBucket: "psychometric-vocab.firebasestorage.app",
+  messagingSenderId: "300359554149",
+  appId: "1:300359554149:web:25a6aa51341acdcc00628c"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+let currentUid = null;
+let authMode = 'login'; // 'login' or 'register'
+let firestoreSaveTimeout = null;
+
+function toggleAuthMode() {
+  authMode = authMode === 'login' ? 'register' : 'login';
+  document.getElementById('authPasswordConfirm').style.display = authMode === 'register' ? 'block' : 'none';
+  document.getElementById('authSubmitBtn').textContent = authMode === 'register' ? 'הרשמה' : 'התחברות';
+  document.getElementById('authToggleBtn').textContent = authMode === 'register' ? 'יש לך חשבון? התחברות' : 'אין לך חשבון? הרשמה';
+  document.getElementById('authError').style.display = 'none';
+}
+
+function showAuthError(msg) {
+  let el = document.getElementById('authError');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+function firebaseErrorHebrew(code) {
+  switch(code) {
+    case 'auth/wrong-password': case 'auth/invalid-credential': return 'סיסמה שגויה';
+    case 'auth/user-not-found': return 'משתמש לא נמצא';
+    case 'auth/email-already-in-use': return 'האימייל כבר בשימוש';
+    case 'auth/weak-password': return 'הסיסמה חלשה מדי (לפחות 6 תווים)';
+    case 'auth/invalid-email': return 'כתובת אימייל לא תקינה';
+    case 'auth/too-many-requests': return 'יותר מדי ניסיונות. נסה שוב מאוחר יותר';
+    case 'auth/network-request-failed': return 'שגיאת רשת. בדוק את החיבור לאינטרנט';
+    default: return 'שגיאה: ' + code;
+  }
+}
+
+async function handleAuth() {
+  let email = document.getElementById('authEmail').value.trim();
+  let password = document.getElementById('authPassword').value;
+  if (!email || !password) { showAuthError('נא למלא אימייל וסיסמה'); return; }
+  if (authMode === 'register') {
+    let confirm = document.getElementById('authPasswordConfirm').value;
+    if (password !== confirm) { showAuthError('הסיסמאות לא תואמות'); return; }
+  }
+  document.getElementById('authSubmitBtn').disabled = true;
+  document.getElementById('authSubmitBtn').textContent = '⏳ ...';
+  try {
+    if (authMode === 'register') {
+      await auth.createUserWithEmailAndPassword(email, password);
+    } else {
+      await auth.signInWithEmailAndPassword(email, password);
+    }
+    // onAuthStateChanged will handle the rest
+  } catch(e) {
+    showAuthError(firebaseErrorHebrew(e.code));
+    document.getElementById('authSubmitBtn').disabled = false;
+    document.getElementById('authSubmitBtn').textContent = authMode === 'register' ? 'הרשמה' : 'התחברות';
+  }
+}
+
+function logoutUser() {
+  auth.signOut();
+  currentUid = null;
+  username = '';
+  document.getElementById('welcome').style.display = 'flex';
+  document.getElementById('mainApp').style.display = 'none';
+  document.getElementById('logoutBtn').style.display = 'none';
+  document.getElementById('authEmail').value = '';
+  document.getElementById('authPassword').value = '';
+  document.getElementById('authPasswordConfirm').value = '';
+  document.getElementById('authError').style.display = 'none';
+  document.getElementById('authSubmitBtn').disabled = false;
+  document.getElementById('authSubmitBtn').textContent = 'התחברות';
+  authMode = 'login';
+  toggleAuthMode(); toggleAuthMode(); // reset UI
+}
+
+// Firestore sync helpers
+async function loadFromFirestore() {
+  if (!currentUid) return;
+  try {
+    let doc = await db.collection('users').doc(currentUid).get();
+    if (doc.exists) {
+      let data = doc.data();
+      if (data.progress) localStorage.setItem(sKey('progress'), JSON.stringify(data.progress));
+      if (data.mistakes) localStorage.setItem(sKey('mistakes'), JSON.stringify(data.mistakes));
+      if (data.essays) localStorage.setItem(sKey('essays'), JSON.stringify(data.essays));
+      if (data.lastUnit) localStorage.setItem(username + '_lastUnit', data.lastUnit);
+      if (data.analogy_stats) localStorage.setItem(sKey('analogy_stats'), JSON.stringify(data.analogy_stats));
+    }
+  } catch(e) { console.error('Firestore load error:', e); }
+}
+
+function saveToFirestore() {
+  if (!currentUid) return;
+  // Debounce: wait 1.5s after last change
+  clearTimeout(firestoreSaveTimeout);
+  firestoreSaveTimeout = setTimeout(() => {
+    let data = {
+      progress: getData('progress', {}),
+      mistakes: getData('mistakes', []),
+      essays: getData('essays', []),
+      lastUnit: localStorage.getItem(username + '_lastUnit') || '',
+      analogy_stats: getData('analogy_stats', {correct:0, total:0}),
+      lastSync: Date.now(),
+      email: auth.currentUser ? auth.currentUser.email : ''
+    };
+    db.collection('users').doc(currentUid).set(data, { merge: true }).catch(e => console.error('Firestore save error:', e));
+  }, 1500);
+}
+
+auth.onAuthStateChanged(async (user) => {
+  if (user) {
+    currentUid = user.uid;
+    username = user.email.split('@')[0];
+    await loadFromFirestore();
+    showApp();
+    document.getElementById('logoutBtn').style.display = 'inline-block';
+  }
+});
+
+// Allow Enter key to submit auth form
+document.addEventListener('DOMContentLoaded', () => {
+  ['authEmail','authPassword','authPasswordConfirm'].forEach(id => {
+    let el = document.getElementById(id);
+    if (el) el.addEventListener('keydown', e => { if (e.key === 'Enter') handleAuth(); });
+  });
+});
+
 // Storage helpers
 function sKey(key) { return username + '_' + key; }
 function getData(key, def) { try { return JSON.parse(localStorage.getItem(sKey(key))) || def; } catch { return def; } }
-function setData(key, val) { localStorage.setItem(sKey(key), JSON.stringify(val)); }
+function setData(key, val) { localStorage.setItem(sKey(key), JSON.stringify(val)); saveToFirestore(); }
 
 // Word progress: { [word]: { correct: n, wrong: n, lastSeen: ts, interval: days, nextReview: ts } }
 function getProgress() { return getData('progress', {}); }
@@ -2554,29 +2687,9 @@ function shuffle(arr) {
   return a;
 }
 
-// Init
+// Init - Firebase auth handles login now
 function initApp() {
-  let stored = localStorage.getItem('vocab_user');
-  if (stored) {
-    username = stored;
-    showApp();
-  }
-}
-
-function startApp() {
-  let name = document.getElementById('usernameInput').value.trim();
-  if (!name) return;
-  username = name;
-  localStorage.setItem('vocab_user', name);
-  showApp();
-}
-
-function switchUser() {
-  localStorage.removeItem('vocab_user');
-  username = '';
-  document.getElementById('welcome').style.display = 'flex';
-  document.getElementById('mainApp').style.display = 'none';
-  document.getElementById('usernameInput').value = '';
+  // Auth state listener already set up above
 }
 
 function showApp() {
@@ -2599,7 +2712,6 @@ function showApp() {
   
   applyFilter();
   setMode('flashcards');
-  showSyncBtn();
   updateHeaderProgress();
 }
 
@@ -2619,7 +2731,7 @@ function applyFilter() {
   let sort = document.getElementById('sortFilter').value;
   
   // Save selected unit
-  if (username) localStorage.setItem(username + '_lastUnit', unit);
+  if (username) { localStorage.setItem(username + '_lastUnit', unit); saveToFirestore(); }
   
   filteredWords = unit === 'all' ? [...VOCAB] : VOCAB.filter(w => w.unit == unit);
   
@@ -2929,6 +3041,7 @@ function confirmReset() {
 function resetProgress() {
   setProgress({});
   setMistakes([]);
+  saveToFirestore();
   showStats();
 }
 
@@ -3240,6 +3353,7 @@ function answerAnalogy(selected, btn, optDiv) {
   if (correct) stats.correct++;
   stats.total++;
   localStorage.setItem(key, JSON.stringify(stats));
+  saveToFirestore();
 }
 
 // Keyboard
@@ -3587,133 +3701,7 @@ if (localStorage.getItem('theme') === 'light') {
   document.getElementById('themeToggle').textContent = '🌞';
 }
 
-// ============ SYNC (Copy/Paste Code) ============
-
-function getProgressSnapshot() {
-  return {
-    progress: getProgress(),
-    mistakes: getMistakes(),
-    timestamp: Date.now(),
-    username: username
-  };
-}
-
-function restoreFromSnapshot(data) {
-  if (data.progress) setProgress(data.progress);
-  if (data.mistakes) setMistakes(data.mistakes);
-}
-
-function exportCode() {
-  let data = getProgressSnapshot();
-  // Compress: only save words with actual progress
-  let slim = { p: {}, m: data.mistakes.map(w => w.word), t: data.timestamp };
-  for (let [k, v] of Object.entries(data.progress)) {
-    if (v.correct || v.wrong) slim.p[k] = [v.correct, v.wrong, v.interval || 0];
-  }
-  return btoa(unescape(encodeURIComponent(JSON.stringify(slim))));
-}
-
-function importCode(code) {
-  try {
-    let slim = JSON.parse(decodeURIComponent(escape(atob(code.trim()))));
-    let progress = {};
-    for (let [k, v] of Object.entries(slim.p)) {
-      progress[k] = { correct: v[0], wrong: v[1], interval: v[2], lastSeen: slim.t, nextReview: Date.now() };
-    }
-    let mistakes = slim.m ? VOCAB.filter(w => slim.m.includes(w.word)) : [];
-    restoreFromSnapshot({ progress, mistakes });
-    return true;
-  } catch(e) { console.error('Import error:', e); return false; }
-}
-
-function openSyncModal() {
-  let modal = document.getElementById('syncModal');
-  modal.style.display = 'block';
-  let p = getProgress();
-  let seen = Object.keys(p).length;
-  
-  let html = '<p style="text-align:center;margin-bottom:16px;">סנכרון בין מכשירים באמצעות קוד</p>';
-  
-  // Export
-  html += '<div style="margin-bottom:16px;">';
-  html += '<button class="btn btn-primary" style="width:100%;margin-bottom:8px;" onclick="doExport()">📤 ייצוא התקדמות (' + seen + ' מילים)</button>';
-  html += '<textarea id="syncCode" readonly style="width:100%;height:80px;padding:8px;border-radius:8px;border:1px solid var(--border);background:var(--bg2);color:var(--text);font-size:0.75em;font-family:monospace;direction:ltr;display:none;resize:none;" onclick="this.select()"></textarea>';
-  html += '<button id="copyBtn" class="btn btn-small btn-secondary" style="width:100%;margin-top:4px;display:none;" onclick="doCopy()">📋 העתק קוד</button>';
-  html += '</div>';
-  
-  // Import
-  html += '<div style="border-top:1px solid var(--border);padding-top:16px;">';
-  html += '<p style="font-size:0.9em;opacity:0.7;margin-bottom:8px;text-align:center;">או הדבק קוד ממכשיר אחר:</p>';
-  html += '<textarea id="importCode" placeholder="הדבק קוד כאן..." style="width:100%;height:80px;padding:8px;border-radius:8px;border:1px solid var(--border);background:var(--bg2);color:var(--text);font-size:0.75em;font-family:monospace;direction:ltr;resize:none;"></textarea>';
-  html += '<button class="btn btn-success" style="width:100%;margin-top:8px;" onclick="doImport()">📥 ייבוא</button>';
-  html += '</div>';
-  
-  html += '<div id="syncStatus" style="text-align:center;margin-top:12px;font-size:0.9em;"></div>';
-  document.getElementById('syncContent').innerHTML = html;
-}
-
-function closeSyncModal() { document.getElementById('syncModal').style.display = 'none'; }
-
-async function doExport() {
-  let code = exportCode();
-  document.getElementById('syncCode').value = code;
-  document.getElementById('syncCode').style.display = 'block';
-  document.getElementById('copyBtn').style.display = 'block';
-  document.getElementById('syncCode').select();
-  document.getElementById('syncStatus').innerHTML = '⏳ שולח לטלגרם...';
-  
-  // Send to Telegram
-  let p = getProgress();
-  let seen = Object.keys(p).length;
-  let mastered = Object.values(p).filter(x => x.correct >= 3 && x.interval >= 5).length;
-  let summary = '🔄 גיבוי התקדמות\n👤 ' + username + '\n📊 ' + seen + ' נצפו | ' + mastered + ' נרכשו';
-  
-  // Send via Telegram: summary + code as separate message
-  let botUrl = 'https://api.telegram.org/bot8549430137:AAGCGTQI3YPS3dboEHxNXws7fHFTX6NbIhs/sendMessage?chat_id=929239973&text=';
-  try {
-    let r = await fetch(botUrl + encodeURIComponent(summary));
-    await fetch(botUrl + encodeURIComponent(code));
-    if (r.ok) {
-      document.getElementById('syncStatus').innerHTML = '✅ נשלח לטלגרם!';
-    } else {
-      document.getElementById('syncStatus').innerHTML = '⚠️ הקוד מוכן להעתקה';
-    }
-  } catch(e) {
-    try {
-      new Image().src = botUrl + encodeURIComponent(summary);
-      new Image().src = botUrl + encodeURIComponent(code);
-      document.getElementById('syncStatus').innerHTML = '✅ נשלח לטלגרם!';
-    } catch(e2) {
-      document.getElementById('syncStatus').innerHTML = '⚠️ הקוד מוכן להעתקה';
-    }
-  }
-}
-
-function doCopy() {
-  let code = document.getElementById('syncCode').value;
-  if (navigator.clipboard) {
-    navigator.clipboard.writeText(code).then(() => {
-      document.getElementById('copyBtn').textContent = '✓ הועתק!';
-      setTimeout(() => { document.getElementById('copyBtn').textContent = '📋 העתק קוד'; }, 2000);
-    });
-  } else {
-    document.getElementById('syncCode').select();
-    document.execCommand('copy');
-    document.getElementById('copyBtn').textContent = '✓ הועתק!';
-  }
-}
-
-function doImport() {
-  let code = document.getElementById('importCode').value.trim();
-  if (!code) { document.getElementById('syncStatus').innerHTML = '❌ הדבק קוד קודם'; return; }
-  let ok = importCode(code);
-  if (ok) {
-    document.getElementById('syncStatus').innerHTML = '✅ יובא בהצלחה! מרענן...';
-    setTimeout(() => { applyFilter(); closeSyncModal(); }, 1000);
-  } else {
-    document.getElementById('syncStatus').innerHTML = '❌ קוד לא תקין';
-  }
-}
+// ============ SYNC (Firebase - handled above) ============
 
 function shareLink() {
   let url = 'https://tomerph2004.github.io/psychometric-vocab/';
@@ -3724,10 +3712,6 @@ function shareLink() {
   } else {
     prompt('העתק את הקישור:', url);
   }
-}
-
-function showSyncBtn() {
-  document.getElementById('syncBtn').style.display = username ? 'inline-block' : 'none';
 }
 
 // ============ END CLOUD SYNC ============
