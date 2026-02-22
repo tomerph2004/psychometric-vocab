@@ -603,6 +603,11 @@ body::before { content:''; position:fixed; inset:0; background: radial-gradient(
 </div>
 
 <script>
+window.onerror = function(msg, src, line, col, err) {
+  var d = document.getElementById('authError');
+  if (d) { d.style.display = 'block'; d.textContent = 'JS Error: ' + msg + ' (line ' + line + ')'; }
+  console.error('Global error:', msg, 'line:', line);
+};
 const ADMIN_EMAIL = 'tomer.p.tom@gmail.com';
 const VOCAB = [
   { word: "אבן משחזת", definition: "אבן להשחזה ולחידוד של סכינים או חומרים קשים כח פיזיקאי יודע כי על מנת להשחיז חומרים קשים", example: "במיוחד נכון להשתמש באבן משחזת רכה" , unit: 1 },
@@ -2721,8 +2726,10 @@ function firebaseErrorHebrew(code) {
 }
 
 async function handleAuth() {
+  console.log('handleAuth called');
   let email = document.getElementById('authEmail').value.trim();
   let password = document.getElementById('authPassword').value;
+  console.log('email:', email, 'password length:', password.length);
   if (!email || !password) { showAuthError('נא למלא אימייל וסיסמה'); return; }
   if (authMode === 'register') {
     let confirm = document.getElementById('authPasswordConfirm').value;
@@ -2738,7 +2745,8 @@ async function handleAuth() {
     }
     // onAuthStateChanged will handle the rest
   } catch(e) {
-    showAuthError(firebaseErrorHebrew(e.code));
+    console.error('Auth error:', e);
+    showAuthError(firebaseErrorHebrew(e.code) || e.message);
     document.getElementById('authSubmitBtn').disabled = false;
     document.getElementById('authSubmitBtn').textContent = authMode === 'register' ? 'הרשמה' : 'התחברות';
   }
