@@ -3257,7 +3257,8 @@ let currentEssayPromptIdx = 0;
 
 function initEssayMode() {
   if (!document.getElementById('essay-prompt-text').textContent) {
-    newEssayPrompt();
+    currentEssayPromptIdx = 0;
+    document.getElementById('essay-prompt-text').textContent = ESSAY_PROMPTS[0].prompt;
   }
 }
 
