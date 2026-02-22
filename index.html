@@ -374,22 +374,29 @@ body::before { content:''; position:fixed; inset:0; background: radial-gradient(
         </div>
         <div id="essay-results" style="display:none;margin-top:20px;">
           <div class="card">
-            <h3 style="text-align:center;margin-bottom:12px;">📊 הערכה עצמית</h3>
-            <p style="opacity:0.7;text-align:center;font-size:0.9em;margin-bottom:12px;">דרג את עצמך בכל קטגוריה (1-5)</p>
-            <table class="rubric-table">
-              <tr><th>קטגוריה</th><th>דירוג</th></tr>
-              <tr><td>🏗️ מבנה (פתיחה, גוף, סיכום)</td><td><select id="rubric-structure"><option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option><option value="5">5</option></select></td></tr>
-              <tr><td>💬 טיעונים (חוזק, מגוון, דוגמאות)</td><td><select id="rubric-arguments"><option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option><option value="5">5</option></select></td></tr>
-              <tr><td>📖 שפה (אוצר מילים, דקדוק)</td><td><select id="rubric-language"><option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option><option value="5">5</option></select></td></tr>
-              <tr><td>🔗 קוהרנטיות (זרימה, מעברים)</td><td><select id="rubric-coherence"><option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option><option value="5">5</option></select></td></tr>
-              <tr><td>📏 אורך וכמות מילים</td><td><select id="rubric-length"><option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option><option value="5">5</option></select></td></tr>
-            </table>
-            <div style="text-align:center;margin-top:12px;">
-              <button class="btn btn-success" onclick="calcEssayScore()">חשב ציון</button>
+            <h3 style="text-align:center;margin-bottom:12px;">📊 ציון מאל"ו</h3>
+            <div id="essay-auto-score" style="display:none;">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+                <div style="text-align:center;padding:16px;border-radius:12px;background:var(--glass);border:2px solid var(--border);">
+                  <div style="font-size:0.85em;opacity:0.7;margin-bottom:4px;">📝 תוכן</div>
+                  <div id="score-content" style="font-size:2.5em;font-weight:bold;color:var(--accent);"></div>
+                  <div style="font-size:0.75em;opacity:0.6;">מתוך 6</div>
+                  <div id="score-content-detail" style="font-size:0.8em;margin-top:8px;opacity:0.8;text-align:right;"></div>
+                </div>
+                <div style="text-align:center;padding:16px;border-radius:12px;background:var(--glass);border:2px solid var(--border);">
+                  <div style="font-size:0.85em;opacity:0.7;margin-bottom:4px;">🖊️ לשון</div>
+                  <div id="score-language" style="font-size:2.5em;font-weight:bold;color:var(--accent);"></div>
+                  <div style="font-size:0.75em;opacity:0.6;">מתוך 6</div>
+                  <div id="score-language-detail" style="font-size:0.8em;margin-top:8px;opacity:0.8;text-align:right;"></div>
+                </div>
+              </div>
+              <div style="text-align:center;padding:12px;border-radius:12px;background:var(--accent);color:white;font-size:1.1em;">
+                ציון משוקלל: <span id="score-weighted" style="font-weight:bold;font-size:1.3em;"></span> מתוך 6
+              </div>
+              <div id="score-feedback" style="margin-top:12px;padding:12px;border-radius:10px;background:var(--glass);border:1px solid var(--border);font-size:0.9em;line-height:1.8;"></div>
             </div>
             <div class="essay-score-display" id="essay-score-display" style="display:none;">
               <div class="essay-score-number" id="essay-score-num"></div>
-              <div style="opacity:0.7;">מתוך 100</div>
             </div>
           </div>
           <div class="card essay-vocab-highlight" id="essay-vocab-box">
