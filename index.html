@@ -4693,7 +4693,8 @@ function answerAnalogy(correct, btn, optDiv, correctPair) {
   let fb = document.getElementById('analogy-feedback');
   fb.style.display = 'block';
   fb.className = 'analogy-feedback ' + (correct ? 'correct' : 'wrong');
-  fb.innerHTML = correct ? '✅ נכון!' : '❌ התשובה הנכונה: ' + analogyCurrent.c + ' : ' + analogyCurrent.d;
+  fb.innerHTML = (correct ? '✅ נכון!' : '❌ התשובה הנכונה: ' + analogyCurrent.c + ' : ' + analogyCurrent.d) +
+    (analogyCurrent.explanation ? '<br><div style="margin-top:10px;padding:10px;background:var(--glass);border-radius:10px;font-size:0.9em;opacity:0.9;text-align:right;line-height:1.6;">💡 ' + analogyCurrent.explanation + '</div>' : '');
 
   document.getElementById('analogy-next').style.display = 'block';
 
