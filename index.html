@@ -3284,16 +3284,30 @@ function submitEssay() {
   let text = document.getElementById('essay-textarea').value.trim();
   if (!text) { alert('כתוב משהו לפני הגשה!'); return; }
   
-  // Show results
   document.getElementById('essay-results').style.display = 'block';
-  document.getElementById('essay-score-display').style.display = 'none';
+  
+  // Auto-grade using NITE-style criteria
+  const scores = gradeEssayNITE(text);
+  
+  // Display scores
+  document.getElementById('essay-auto-score').style.display = 'block';
+  document.getElementById('score-content').textContent = scores.content;
+  document.getElementById('score-language').textContent = scores.language;
+  document.getElementById('score-content-detail').innerHTML = scores.contentDetails;
+  document.getElementById('score-language-detail').innerHTML = scores.languageDetails;
+  
+  // Weighted score (NITE: content and language equally weighted)
+  const weighted = ((scores.content + scores.language) / 2).toFixed(1);
+  document.getElementById('score-weighted').textContent = weighted;
+  document.getElementById('essay-score-display').style.display = 'block';
+  document.getElementById('essay-score-num').textContent = weighted;
+  
+  // Feedback
+  document.getElementById('score-feedback').innerHTML = scores.feedback;
   
   // Find vocab words used
   let usedVocab = [];
-  let lowerText = text;
-  VOCAB.forEach(v => {
-    if (lowerText.includes(v.word)) usedVocab.push(v.word);
-  });
+  VOCAB.forEach(v => { if (text.includes(v.word)) usedVocab.push(v.word); });
   let vocabBox = document.getElementById('essay-vocab-list');
   if (usedVocab.length > 0) {
     vocabBox.innerHTML = '<strong style="color:var(--success);">' + usedVocab.length + ' מילים!</strong> ' + usedVocab.map(w => '<span style="background:var(--accent2);color:white;padding:2px 8px;border-radius:8px;margin:2px;display:inline-block;font-size:0.9em;">' + w + '</span>').join(' ');
@@ -3313,15 +3327,127 @@ function submitEssay() {
   document.getElementById('essay-results').scrollIntoView({ behavior: 'smooth' });
 }
 
-function calcEssayScore() {
-  let s = parseInt(document.getElementById('rubric-structure').value);
-  let a = parseInt(document.getElementById('rubric-arguments').value);
-  let l = parseInt(document.getElementById('rubric-language').value);
-  let c = parseInt(document.getElementById('rubric-coherence').value);
-  let len = parseInt(document.getElementById('rubric-length').value);
-  let score = Math.round((s + a + l + c + len) / 25 * 100);
-  document.getElementById('essay-score-num').textContent = score;
-  document.getElementById('essay-score-display').style.display = 'block';
+function gradeEssayNITE(text) {
+  const words = text.split(/\s+/).filter(w => w.length > 0);
+  const wordCount = words.length;
+  const sentences = text.split(/[.!?؟]/).filter(s => s.trim().length > 3);
+  const sentenceCount = sentences.length;
+  const paragraphs = text.split(/\n\s*\n/).filter(p => p.trim().length > 10);
+  const paraCount = paragraphs.length;
+  const lines = Math.ceil(wordCount / 8); // ~8 words per line estimate
+  
+  // === CONTENT SCORE (1-6) ===
+  let contentScore = 1;
+  let contentNotes = [];
+  
+  // Length (minimum 25 lines / ~200 words)
+  if (wordCount >= 250) { contentScore += 1; contentNotes.push('✅ אורך מתאים (' + wordCount + ' מילים)'); }
+  else if (wordCount >= 150) { contentScore += 0.5; contentNotes.push('⚠️ קצר — ' + wordCount + ' מילים (מומלץ 200+)'); }
+  else { contentNotes.push('❌ קצר מדי — ' + wordCount + ' מילים'); }
+  
+  // Paragraph structure
+  if (paraCount >= 4) { contentScore += 1; contentNotes.push('✅ מבנה פסקאות טוב (' + paraCount + ')'); }
+  else if (paraCount >= 2) { contentScore += 0.5; contentNotes.push('⚠️ מעט פסקאות (' + paraCount + ')'); }
+  else { contentNotes.push('❌ חסר חלוקה לפסקאות'); }
+  
+  // Arguments & critical thinking markers
+  const argMarkers = ['לדעתי', 'לעומת זאת', 'מנגד', 'מצד אחד', 'מצד שני', 'יש הטוענים', 'אחרים סבורים', 'בנוסף', 'יתרה מזאת', 'ניתן לטעון', 'הטיעון', 'הטענה'];
+  const foundArgs = argMarkers.filter(m => text.includes(m));
+  if (foundArgs.length >= 5) { contentScore += 1.5; contentNotes.push('✅ טיעונים מגוונים (' + foundArgs.length + ' סמנים)'); }
+  else if (foundArgs.length >= 3) { contentScore += 1; contentNotes.push('✅ טיעונים סבירים (' + foundArgs.length + ' סמנים)'); }
+  else if (foundArgs.length >= 1) { contentScore += 0.5; contentNotes.push('⚠️ מעט טיעונים'); }
+  else { contentNotes.push('❌ חסרים סמני טיעון'); }
+  
+  // Counter-arguments (critical thinking)
+  const counterMarkers = ['מנגד', 'מצד שני', 'לעומת זאת', 'אחרים טוענים', 'אחרים סבורים', 'הצד השני', 'יש החולקים', 'עם זאת'];
+  const foundCounter = counterMarkers.filter(m => text.includes(m));
+  if (foundCounter.length >= 2) { contentScore += 0.5; contentNotes.push('✅ התייחסות לצד השני'); }
+  else if (foundCounter.length >= 1) { contentScore += 0.25; contentNotes.push('⚠️ התייחסות חלקית לצד השני'); }
+  else { contentNotes.push('❌ חסרה התייחסות לצד הנגדי'); }
+  
+  // Examples
+  const exampleMarkers = ['לדוגמה', 'למשל', 'כגון', 'ניקח לדוגמה', 'דוגמה לכך', 'מחקרים מראים', 'מחקר', 'נתונים', 'סקר'];
+  const foundExamples = exampleMarkers.filter(m => text.includes(m));
+  if (foundExamples.length >= 2) { contentScore += 0.5; contentNotes.push('✅ דוגמאות ונתונים'); }
+  else if (foundExamples.length >= 1) { contentScore += 0.25; contentNotes.push('⚠️ דוגמה אחת — כדאי להוסיף'); }
+  else { contentNotes.push('❌ חסרות דוגמאות'); }
+  
+  // Conclusion
+  const conclusionMarkers = ['לסיכום', 'לסיום', 'בשורה התחתונה', 'בסופו של דבר', 'נמצא כי', 'עולה כי'];
+  const hasConclusion = conclusionMarkers.some(m => text.includes(m));
+  if (hasConclusion) { contentScore += 0.5; contentNotes.push('✅ סיכום'); }
+  else { contentNotes.push('⚠️ חסר סיכום מפורש'); }
+  
+  contentScore = Math.min(6, Math.max(1, Math.round(contentScore * 2) / 2));
+  
+  // === LANGUAGE SCORE (1-6) ===
+  let langScore = 2; // base
+  let langNotes = [];
+  
+  // Vocabulary richness (unique words / total words)
+  const uniqueWords = new Set(words.map(w => w.replace(/[^\u0590-\u05FF]/g, ''))).size;
+  const vocabRichness = wordCount > 0 ? uniqueWords / wordCount : 0;
+  if (vocabRichness >= 0.65) { langScore += 1; langNotes.push('✅ אוצר מילים עשיר (' + uniqueWords + ' מילים ייחודיות)'); }
+  else if (vocabRichness >= 0.5) { langScore += 0.5; langNotes.push('⚠️ אוצר מילים סביר'); }
+  else { langNotes.push('❌ חזרות רבות על מילים'); }
+  
+  // High register / formal words
+  const formalWords = ['אולם', 'לפיכך', 'משום כך', 'באשר', 'אף על פי', 'הגם ש', 'נוכח', 'בשים לב', 'בהינתן', 'הואיל', 'מאחר', 'שכן', 'אכן', 'ברם', 'עם זאת', 'דהיינו', 'קרי', 'כלומר'];
+  const foundFormal = formalWords.filter(m => text.includes(m));
+  if (foundFormal.length >= 4) { langScore += 1; langNotes.push('✅ משלב גבוה (' + foundFormal.length + ' ביטויים)'); }
+  else if (foundFormal.length >= 2) { langScore += 0.5; langNotes.push('✅ משלב סביר'); }
+  else { langNotes.push('⚠️ כדאי להשתמש במילים ממשלב גבוה'); }
+  
+  // VOCAB words from the app
+  let usedAppVocab = 0;
+  VOCAB.forEach(v => { if (text.includes(v.word)) usedAppVocab++; });
+  if (usedAppVocab >= 5) { langScore += 0.5; langNotes.push('✅ שילוב מילים מאוצר המילים (' + usedAppVocab + ')'); }
+  else if (usedAppVocab >= 2) { langScore += 0.25; langNotes.push('⚠️ ' + usedAppVocab + ' מילים מהאפליקציה — נסה לשלב עוד'); }
+  
+  // Sentence variety
+  if (sentenceCount > 0) {
+    const avgSentLen = wordCount / sentenceCount;
+    const sentLens = sentences.map(s => s.trim().split(/\s+/).length);
+    const variance = sentLens.reduce((sum, l) => sum + Math.pow(l - avgSentLen, 2), 0) / sentLens.length;
+    if (variance > 30 && avgSentLen >= 8 && avgSentLen <= 25) { langScore += 0.5; langNotes.push('✅ גיוון באורך משפטים'); }
+    else if (avgSentLen < 6) { langNotes.push('⚠️ משפטים קצרים מדי'); }
+    else if (avgSentLen > 30) { langNotes.push('⚠️ משפטים ארוכים מדי — קשה לעקוב'); }
+  }
+  
+  // Linking words
+  const linkWords = ['בנוסף', 'כמו כן', 'יתרה מזאת', 'לעומת זאת', 'מנגד', 'אולם', 'עם זאת', 'לכן', 'משום כך', 'לפיכך', 'כתוצאה', 'בעקבות', 'ראשית', 'שנית', 'שלישית', 'לבסוף'];
+  const foundLinks = linkWords.filter(m => text.includes(m));
+  if (foundLinks.length >= 4) { langScore += 0.5; langNotes.push('✅ מילות קישור מגוונות (' + foundLinks.length + ')'); }
+  else if (foundLinks.length >= 2) { langScore += 0.25; langNotes.push('⚠️ מעט מילות קישור'); }
+  else { langNotes.push('❌ חסרות מילות קישור — השתמש ב: בנוסף, לעומת זאת, לפיכך...'); }
+  
+  langScore = Math.min(6, Math.max(1, Math.round(langScore * 2) / 2));
+  
+  // === FEEDBACK ===
+  let feedback = '<b>📊 סיכום:</b><br>';
+  const weighted = (contentScore + langScore) / 2;
+  if (weighted >= 5) feedback += '🌟 חיבור מצוין! ברמה גבוהה מאוד.';
+  else if (weighted >= 4) feedback += '👏 חיבור טוב. עם כמה שיפורים יכול להיות מצוין.';
+  else if (weighted >= 3) feedback += '📝 חיבור סביר. יש מקום לשיפור — קרא את ההערות.';
+  else if (weighted >= 2) feedback += '⚠️ חיבור שדורש עבודה. התמקד בהערות ונסה שוב.';
+  else feedback += '❌ חיבור חלש. קרא את החיבור לדוגמה ונסה שוב.';
+  
+  feedback += '<br><br><b>💡 המלצות:</b><br>';
+  if (wordCount < 200) feedback += '• הוסף עוד תוכן — מומלץ לפחות 200 מילים (25 שורות)<br>';
+  if (paraCount < 4) feedback += '• חלק לפסקאות: פתיחה, 2-3 פסקאות גוף, סיכום<br>';
+  if (foundCounter.length < 1) feedback += '• הוסף התייחסות לצד הנגדי ("מנגד...", "אחרים טוענים...")<br>';
+  if (foundExamples.length < 2) feedback += '• הוסף דוגמאות קונקרטיות לחיזוק הטיעונים<br>';
+  if (foundFormal.length < 2) feedback += '• השתמש במילים ממשלב גבוה: אולם, לפיכך, בהינתן, שכן...<br>';
+  if (!hasConclusion) feedback += '• הוסף פסקת סיכום ("לסיכום...")<br>';
+  if (usedAppVocab < 3) feedback += '• נסה לשלב מילים מאוצר המילים שלמדת!<br>';
+  
+  return {
+    content: contentScore,
+    language: langScore,
+    contentDetails: contentNotes.join('<br>'),
+    languageDetails: langNotes.join('<br>'),
+    feedback: feedback
+  };
 }
 
 function saveEssay() {
