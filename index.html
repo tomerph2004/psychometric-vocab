@@ -3389,11 +3389,24 @@ function submitEssay() {
 function gradeEssayNITE(text) {
   const words = text.split(/\s+/).filter(w => w.length > 0);
   const wordCount = words.length;
+  // Filter: only count words with Hebrew letters
+  const hebrewWords = words.filter(w => /[\u0590-\u05FF]/.test(w));
+  const hebrewCount = hebrewWords.length;
   const sentences = text.split(/[.!?؟]/).filter(s => s.trim().length > 3);
   const sentenceCount = sentences.length;
   const paragraphs = text.split(/\n\s*\n/).filter(p => p.trim().length > 10);
   const paraCount = paragraphs.length;
   const lines = Math.ceil(wordCount / 8); // ~8 words per line estimate
+  
+  // === MINIMUM THRESHOLD ===
+  if (hebrewCount < 30) {
+    return {
+      content: 1, language: 1,
+      contentDetails: '❌ טקסט קצר מדי (' + wordCount + ' מילים). נדרשות לפחות 30 מילים בעברית לדירוג.',
+      languageDetails: '❌ לא ניתן לדרג לשון בטקסט כה קצר.',
+      feedback: '<b>📊 סיכום:</b><br>❌ הטקסט קצר מדי לדירוג. חיבור לפסיכומטרי צריך להיות לפחות 200 מילים (25 שורות).<br><br><b>💡 המלצות:</b><br>• קרא את החיבור לדוגמה כדי להבין את המבנה הנדרש<br>• פתח בעמדה ברורה ("לדעתי...")<br>• הוסף 2-3 טיעונים עם דוגמאות<br>• התייחס לצד הנגדי<br>• סכם ("לסיכום...")'
+    };
+  }
   
   // === CONTENT SCORE (1-6) ===
   let contentScore = 1;
@@ -3440,7 +3453,7 @@ function gradeEssayNITE(text) {
   contentScore = Math.min(6, Math.max(1, Math.round(contentScore * 2) / 2));
   
   // === LANGUAGE SCORE (1-6) ===
-  let langScore = 2; // base
+  let langScore = 1; // base
   let langNotes = [];
   
   // Vocabulary richness (unique words / total words)
