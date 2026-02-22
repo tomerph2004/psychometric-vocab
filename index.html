@@ -3340,7 +3340,8 @@ function submitEssay() {
   
   // Model essay
   let prompt = ESSAY_PROMPTS[currentEssayPromptIdx];
-  document.getElementById('essay-model-text').textContent = prompt.model;
+  let modelHtml = prompt.model.replace(/\\n/g, '\n').replace(/\n/g, '<br>');
+  document.getElementById('essay-model-text').innerHTML = modelHtml;
   
   document.getElementById('essay-results').scrollIntoView({ behavior: 'smooth' });
 }
