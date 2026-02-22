@@ -4601,6 +4601,31 @@ function getWordDef(word) {
   return '';
 }
 
+function buildWrongPairs(analogy) {
+  // Build 3 wrong pair options from wrong array
+  // Each wrong item is the "d" of a wrong pair; we need a "c" too
+  // Strategy: pick random words from VOCAB or other analogies as fake "c" values
+  let wrongPairs = [];
+  let usedCs = [analogy.c];
+  let pool = getFilteredAnalogies();
+  let candidateCs = pool.map(a => a.c).filter(c => c !== analogy.c);
+  if (candidateCs.length < 3) candidateCs = ANALOGIES.map(a => a.c).filter(c => c !== analogy.c);
+  candidateCs = shuffle(candidateCs);
+  
+  for (let i = 0; i < analogy.wrong.length; i++) {
+    let fakeC = candidateCs[i % candidateCs.length];
+    // Make sure fakeC isn't duplicated
+    let attempts = 0;
+    while (usedCs.includes(fakeC) && attempts < candidateCs.length) {
+      attempts++;
+      fakeC = candidateCs[(i + attempts) % candidateCs.length];
+    }
+    usedCs.push(fakeC);
+    wrongPairs.push({ c: fakeC, d: analogy.wrong[i] });
+  }
+  return wrongPairs;
+}
+
 function nextAnalogy() {
   let pool = getFilteredAnalogies();
   if (!pool.length) return;
@@ -4611,35 +4636,39 @@ function nextAnalogy() {
   analogyCurrent = pool[idx];
 
   let eq = document.getElementById('analogy-equation');
-  eq.innerHTML = analogyCurrent.a + ' : ' + analogyCurrent.b + ' = ' + analogyCurrent.c + ' : <span class="analogy-blank">?</span>';
+  eq.innerHTML = '<strong>' + analogyCurrent.a + ' : ' + analogyCurrent.b + '</strong>';
 
   document.getElementById('analogy-score').textContent = '🧩 ' + analogyCorrect + ' / ' + analogyTotal;
   document.getElementById('analogy-relation').textContent = '';
-  document.getElementById('analogy-unit').textContent = 'יחידה ' + analogyCurrent.unit;
+  document.getElementById('analogy-unit').textContent = analogyCurrent.unit ? 'יחידה ' + analogyCurrent.unit : '';
   document.getElementById('analogy-feedback').style.display = 'none';
   document.getElementById('analogy-next').style.display = 'none';
 
-  let options = shuffle([analogyCurrent.d, ...analogyCurrent.wrong]);
+  let correctPair = { c: analogyCurrent.c, d: analogyCurrent.d };
+  let wrongPairs = buildWrongPairs(analogyCurrent);
+  let allOptions = shuffle([correctPair, ...wrongPairs]);
+
   let optDiv = document.getElementById('analogy-options');
   optDiv.innerHTML = '';
-  options.forEach(o => {
+  let labels = ['(1)', '(2)', '(3)', '(4)'];
+  allOptions.forEach((pair, i) => {
     let btn = document.createElement('button');
     btn.className = 'analogy-option';
-    let def = getWordDef(o);
-    btn.innerHTML = '<strong>' + o + '</strong>' + (def ? '<br><span style="font-size:0.75em;opacity:0.7;font-weight:normal">' + def + '</span>' : '');
-    btn.dataset.word = o;
-    btn.onclick = () => answerAnalogy(o, btn, optDiv);
+    btn.innerHTML = '<span style="opacity:0.5;font-size:0.85em">' + labels[i] + '</span> <strong>' + pair.c + ' : ' + pair.d + '</strong>';
+    btn.dataset.c = pair.c;
+    btn.dataset.d = pair.d;
+    btn.dataset.isCorrect = (pair.c === correctPair.c && pair.d === correctPair.d) ? '1' : '0';
+    btn.onclick = () => answerAnalogy(btn.dataset.isCorrect === '1', btn, optDiv, correctPair);
     optDiv.appendChild(btn);
   });
 }
 
-function answerAnalogy(selected, btn, optDiv) {
+function answerAnalogy(correct, btn, optDiv, correctPair) {
   analogyTotal++;
-  let correct = selected === analogyCurrent.d;
 
   optDiv.querySelectorAll('.analogy-option').forEach(b => {
     b.classList.add('disabled');
-    if (b.dataset.word === analogyCurrent.d) b.classList.add('correct');
+    if (b.dataset.isCorrect === '1') b.classList.add('correct');
   });
 
   if (correct) {
@@ -4655,7 +4684,8 @@ function answerAnalogy(selected, btn, optDiv) {
 
   // Update equation to show the answer
   document.getElementById('analogy-equation').innerHTML =
-    analogyCurrent.a + ' : ' + analogyCurrent.b + ' = ' + analogyCurrent.c + ' : <strong style="color:var(--success)">' + analogyCurrent.d + '</strong>';
+    '<strong>' + analogyCurrent.a + ' : ' + analogyCurrent.b + '</strong>' +
+    '<br><span style="color:var(--success);font-size:0.9em;margin-top:8px;display:inline-block;">✓ ' + analogyCurrent.c + ' : ' + analogyCurrent.d + '</span>';
 
   let relName = RELATION_NAMES[analogyCurrent.type] || analogyCurrent.type;
   document.getElementById('analogy-relation').textContent = '🔗 סוג הקשר: ' + relName;
@@ -4663,8 +4693,7 @@ function answerAnalogy(selected, btn, optDiv) {
   let fb = document.getElementById('analogy-feedback');
   fb.style.display = 'block';
   fb.className = 'analogy-feedback ' + (correct ? 'correct' : 'wrong');
-  fb.innerHTML = (correct ? '✅ נכון!' : '❌ לא נכון') +
-    '<br>' + analogyCurrent.a + ' ← ' + analogyCurrent.b + ' (כמו) ' + analogyCurrent.c + ' ← ' + analogyCurrent.d;
+  fb.innerHTML = correct ? '✅ נכון!' : '❌ התשובה הנכונה: ' + analogyCurrent.c + ' : ' + analogyCurrent.d;
 
   document.getElementById('analogy-next').style.display = 'block';
 
