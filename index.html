@@ -41,6 +41,8 @@ body::before { content:''; position:fixed; inset:0; background: radial-gradient(
 .nav { display:flex; gap:8px; margin-bottom:20px; flex-wrap:wrap; justify-content:center; }
 .nav .btn { flex:1; min-width:100px; }
 .nav .btn.active { outline:2px solid var(--accent); outline-offset:2px; }
+.admin-hide { display:none !important; }
+.admin-show { display:inline-block !important; }
 .card { background: var(--glass); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-radius:20px; padding:24px; box-shadow: 0 8px 32px var(--shadow); margin-bottom:16px; border:1px solid var(--border); }
 
 /* Animations */
@@ -226,7 +228,7 @@ body::before { content:''; position:fixed; inset:0; background: radial-gradient(
       <button class="btn btn-primary" data-mode="review" onclick="setMode('review')">🔁 סקירת טעויות</button>
       <button class="btn btn-primary" data-mode="stats" onclick="setMode('stats')">📊 סטטיסטיקה</button>
       <button class="btn btn-primary" data-mode="essay" onclick="setMode('essay')">✍️ חיבור</button>
-      <button class="btn btn-primary" data-mode="admin" id="adminBtn" style="display:none;" onclick="setMode('admin')">👑 אדמין</button>
+      <button class="btn btn-primary admin-hide" data-mode="admin" id="adminBtn" onclick="setMode('admin')">👑 אדמין</button>
     </div>
 
     <div class="filters" id="filtersBar">
@@ -2623,7 +2625,8 @@ auth.onAuthStateChanged(async (user) => {
     document.getElementById('logoutBtn').style.display = 'inline-block';
     // Show admin button for admin user
     if (user.email && user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
-      document.getElementById('adminBtn').style.display = '';
+      let ab = document.getElementById('adminBtn');
+      if (ab) { ab.classList.remove('admin-hide'); ab.classList.add('admin-show'); }
     }
   }
 });
