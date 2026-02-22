@@ -4889,7 +4889,20 @@ async function loadAdminPanel() {
   container.innerHTML = '<div style="text-align:center;padding:40px;opacity:0.5;">⏳ טוען משתמשים...</div>';
   try {
     let snapshot = await db.collection('users').get();
-    let users = [];
+    let users = [,
+  {a:"מושלם",b:"פגם",c:"ריק",d:"תוכן",type:"antonym_concept",unit:0,wrong:["אף", "סוכר", "שורשים"],source:"nite2019"},
+  {a:"לשכנע",b:"לטעון",c:"לקלוע",d:"לזרוק",type:"cause_effect",unit:0,wrong:["להסתיר", "להביך", "לענות"],source:"nite2019"},
+  {a:"הסתפק",b:"מספיק",c:"העדיף",d:"עדיף",type:"synonym",unit:0,wrong:["רציני", "מוגזם", "מובטח"],source:"nite2019"},
+  {a:"כמוסה",b:"מזרק",c:"גפרור",d:"מצית",type:"tool_action",unit:0,wrong:["ספר", "מסור", "אשנב"],source:"nite2019"},
+  {a:"תו",b:"סימפוניה",c:"אות",d:"רומן",type:"part_whole",unit:0,wrong:["מתמטיקה", "מספר", "ניקוד"],source:"nite2019"},
+  {a:"התגושש",b:"התגוששות",c:"נפגש",d:"מפגש",type:"synonym",unit:0,wrong:["חתונה", "ייעוץ", "מרדף"],source:"nite2019"},
+  {a:"למחול",b:"בלתי נסלח",c:"לגבור",d:"בלתי מנוצח",type:"antonym_concept",unit:0,wrong:["בלתי ראוי", "בלתי ידוע", "בלתי נמנע"],source:"nite2019"},
+  {a:"חיריק",b:"נקודה",c:"תורן",d:"מוט",type:"category",unit:0,wrong:["צידה", "מאפה", "יציע"],source:"nite2019"},
+  {a:"אנשים",b:"להקהיל",c:"זרדים",d:"לקושש",type:"action_object",unit:0,wrong:["לסחוט", "לקלוע", "להשקות"],source:"nite2019"},
+  {a:"רצף",b:"טאטא",c:"חייט",d:"כיבס",type:"tool_worker",unit:0,wrong:["חפף", "הדיח", "חיטא"],source:"nite2019"},
+  {a:"הלחיץ",b:"הזיע",c:"שעמם",d:"פיהק",type:"cause_effect",unit:0,wrong:["מצמץ", "צחק", "כעס"],source:"nite2019"},
+  {a:"רם",b:"גובה",c:"ממושך",d:"משך",type:"synonym",unit:0,wrong:["עניין", "יכולת", "טעם"],source:"nite2019"}
+];
     snapshot.forEach(doc => {
       let d = doc.data();
       users.push({ uid: doc.id, ...d });
