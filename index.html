@@ -226,6 +226,7 @@ body::before { content:''; position:fixed; inset:0; background: radial-gradient(
       <button class="btn btn-primary" data-mode="review" onclick="setMode('review')">🔁 סקירת טעויות</button>
       <button class="btn btn-primary" data-mode="stats" onclick="setMode('stats')">📊 סטטיסטיקה</button>
       <button class="btn btn-primary" data-mode="essay" onclick="setMode('essay')">✍️ חיבור</button>
+      <button class="btn btn-primary" data-mode="admin" id="adminBtn" style="display:none;" onclick="setMode('admin')">👑 אדמין</button>
     </div>
 
     <div class="filters" id="filtersBar">
@@ -473,10 +474,23 @@ body::before { content:''; position:fixed; inset:0; background: radial-gradient(
         </div>
       </div>
     </div>
+
+    <!-- Admin Panel -->
+    <div id="mode-admin" style="display:none;">
+      <div class="card" style="text-align:center;margin-bottom:16px;">
+        <h2>👑 פאנל אדמין</h2>
+        <p style="opacity:0.6;margin-top:4px;">משתמשים רשומים באפליקציה</p>
+      </div>
+      <div id="admin-users-list">
+        <div style="text-align:center;padding:40px;opacity:0.5;">טוען...</div>
+      </div>
+    </div>
+
   </div>
 </div>
 
 <script>
+const ADMIN_EMAIL = 'tomer.p.tom@gmail.com';
 const VOCAB = [
   { word: "אבן משחזת", definition: "אבן להשחזה ולחידוד של סכינים או חומרים קשים כח פיזיקאי יודע כי על מנת להשחיז חומרים קשים", example: "במיוחד נכון להשתמש באבן משחזת רכה" , unit: 1 },
   { word: "אבנט", definition: "חגורה רחבה גלימה ששימשה את הכוהנים בזמן עבודתם בבית המקדש", example: "בצבא הודו השימוש באבנט שכיח למדי" , unit: 1 },
@@ -2607,6 +2621,10 @@ auth.onAuthStateChanged(async (user) => {
     await loadFromFirestore();
     showApp();
     document.getElementById('logoutBtn').style.display = 'inline-block';
+    // Show admin button for admin user
+    if (user.email && user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
+      document.getElementById('adminBtn').style.display = '';
+    }
   }
 });
 
@@ -2757,8 +2775,9 @@ function setMode(mode) {
   document.querySelectorAll('.nav .btn').forEach(b => b.classList.remove('active'));
   document.querySelector('[data-mode="' + mode + '"]').classList.add('active');
   
-  ['flashcards','unknown','quiz','analogies','review','stats','essay'].forEach(m => {
-    document.getElementById('mode-' + m).style.display = m === mode ? 'block' : 'none';
+  ['flashcards','unknown','quiz','analogies','review','stats','essay','admin'].forEach(m => {
+    let el = document.getElementById('mode-' + m);
+    if (el) el.style.display = m === mode ? 'block' : 'none';
   });
   document.getElementById('filtersBar').style.display = mode === 'stats' ? 'none' : 'flex';
   
@@ -2769,6 +2788,7 @@ function setMode(mode) {
   if (mode === 'review') showReview();
   if (mode === 'stats') showStats();
   if (mode === 'essay') initEssayMode();
+  if (mode === 'admin') loadAdminPanel();
 }
 
 // Flashcards
@@ -3778,6 +3798,49 @@ function updateLineNumbers() {
   ln.style.lineHeight = '1.8';
   ln.style.fontSize = '0.85em';
   ln.style.fontFamily = 'monospace';
+}
+
+// === ADMIN PANEL ===
+async function loadAdminPanel() {
+  let container = document.getElementById('admin-users-list');
+  if (!auth.currentUser || auth.currentUser.email.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
+    container.innerHTML = '<div class="card" style="text-align:center;color:var(--error);">⛔ אין הרשאה</div>';
+    return;
+  }
+  container.innerHTML = '<div style="text-align:center;padding:40px;opacity:0.5;">⏳ טוען משתמשים...</div>';
+  try {
+    let snapshot = await db.collection('users').get();
+    let users = [];
+    snapshot.forEach(doc => {
+      let d = doc.data();
+      users.push({ uid: doc.id, ...d });
+    });
+    users.sort((a, b) => (b.lastSync || 0) - (a.lastSync || 0));
+    let html = '<div class="card" style="margin-bottom:12px;padding:12px;"><strong>סה"כ: ' + users.length + ' משתמשים</strong></div>';
+    users.forEach((u, i) => {
+      let email = u.email || 'לא ידוע';
+      let progress = u.progress || {};
+      let totalWords = Object.keys(progress).length;
+      let knownWords = Object.values(progress).filter(v => v >= 4).length;
+      let essays = (u.essays || []).length;
+      let lastSync = u.lastSync ? new Date(u.lastSync).toLocaleString('he-IL', { timeZone: 'Asia/Jerusalem' }) : 'אף פעם';
+      let lastUnit = u.lastUnit || '-';
+      html += '<div class="card" style="margin-bottom:10px;padding:16px;">';
+      html += '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">';
+      html += '<div><strong style="font-size:1.1em;">' + (i+1) + '. ' + email + '</strong></div>';
+      html += '<div style="font-size:0.8em;opacity:0.6;">עדכון אחרון: ' + lastSync + '</div>';
+      html += '</div>';
+      html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-top:10px;">';
+      html += '<div style="background:var(--glass);padding:8px 12px;border-radius:10px;text-align:center;"><div style="font-size:1.4em;font-weight:bold;color:var(--accent);">' + totalWords + '</div><div style="font-size:0.75em;opacity:0.6;">מילים נלמדו</div></div>';
+      html += '<div style="background:var(--glass);padding:8px 12px;border-radius:10px;text-align:center;"><div style="font-size:1.4em;font-weight:bold;color:var(--success);">' + knownWords + '</div><div style="font-size:0.75em;opacity:0.6;">מילים ידועות</div></div>';
+      html += '<div style="background:var(--glass);padding:8px 12px;border-radius:10px;text-align:center;"><div style="font-size:1.4em;font-weight:bold;color:var(--accent2);">' + essays + '</div><div style="font-size:0.75em;opacity:0.6;">חיבורים</div></div>';
+      html += '<div style="background:var(--glass);padding:8px 12px;border-radius:10px;text-align:center;"><div style="font-size:1.4em;font-weight:bold;">' + lastUnit + '</div><div style="font-size:0.75em;opacity:0.6;">יחידה אחרונה</div></div>';
+      html += '</div></div>';
+    });
+    container.innerHTML = html;
+  } catch(e) {
+    container.innerHTML = '<div class="card" style="text-align:center;color:var(--error);">❌ שגיאה: ' + e.message + '</div>';
+  }
 }
 </script>
 </body>
