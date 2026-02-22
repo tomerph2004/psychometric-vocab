@@ -391,7 +391,7 @@ body::before { content:''; position:fixed; inset:0; background: radial-gradient(
                 </div>
               </div>
               <div style="text-align:center;padding:12px;border-radius:12px;background:var(--accent);color:white;font-size:1.1em;">
-                ציון משוקלל: <span id="score-weighted" style="font-weight:bold;font-size:1.3em;"></span> מתוך 6
+                ציון כולל: <span id="score-weighted" style="font-weight:bold;font-size:1.3em;"></span> מתוך 12
               </div>
               <div id="score-feedback" style="margin-top:12px;padding:12px;border-radius:10px;background:var(--glass);border:1px solid var(--border);font-size:0.9em;line-height:1.8;"></div>
             </div>
@@ -3304,7 +3304,7 @@ function submitEssay() {
   document.getElementById('score-language-detail').innerHTML = scores.languageDetails;
   
   // Weighted score (NITE: content and language equally weighted)
-  const weighted = ((scores.content + scores.language) / 2).toFixed(1);
+  const weighted = (scores.content + scores.language).toFixed(1);
   document.getElementById('score-weighted').textContent = weighted;
   document.getElementById('essay-score-display').style.display = 'block';
   document.getElementById('essay-score-num').textContent = weighted;
@@ -3497,7 +3497,7 @@ function showEssayHistory() {
     return '<div class="essay-history-item" onclick="showEssayDetail(' + i + ')">' +
       '<div class="essay-history-date">' + dateStr + '</div>' +
       '<div class="essay-history-prompt">' + e.prompt + '</div>' +
-      '<div class="essay-history-score">' + (e.score ? 'ציון: ' + e.score + '/100' : 'ללא ציון') + ' · ' + e.wordCount + ' מילים</div>' +
+      '<div class="essay-history-score">' + (e.score ? 'ציון: ' + e.score + '/12' : 'ללא ציון') + ' · ' + e.wordCount + ' מילים</div>' +
       '</div>';
   }).join('');
 }
@@ -3512,7 +3512,7 @@ function showEssayDetail(idx) {
   document.getElementById('essay-detail-prompt').textContent = e.prompt;
   let d = new Date(e.date);
   document.getElementById('essay-detail-date').textContent = d.toLocaleDateString('he-IL') + ' ' + d.toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'}) + ' · ' + e.wordCount + ' מילים';
-  document.getElementById('essay-detail-score').textContent = e.score ? 'ציון: ' + e.score + '/100' : '';
+  document.getElementById('essay-detail-score').textContent = e.score ? 'ציון: ' + e.score + '/12' : '';
   document.getElementById('essay-detail-text').textContent = e.text;
 }
 
