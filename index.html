@@ -195,7 +195,9 @@ body::before { content:''; position:fixed; inset:0; background: radial-gradient(
   <h1>📚 עושר לשוני</h1>
   <div class="header-right">
     <span id="userDisplay"></span>
+    <span id="spacedRepetitionCount" style="font-size:0.8em;opacity:0.7;margin-right:8px;"></span>
     <button class="btn btn-small btn-secondary" id="logoutBtn" onclick="logoutUser()" style="display:none;" title="התנתק">🚪</button>
+    <button class="btn btn-small btn-primary" id="soundToggle" onclick="toggleSound()">🔊</button>
     <button class="btn btn-small btn-primary" id="themeToggle" onclick="toggleTheme()">🌙</button>
     <button class="btn btn-small btn-secondary" onclick="shareLink()">🔗</button>
   </div>
@@ -226,6 +228,9 @@ body::before { content:''; position:fixed; inset:0; background: radial-gradient(
       <button class="btn btn-primary" data-mode="quiz" onclick="setMode('quiz')">❓ חידון</button>
       <button class="btn btn-primary" data-mode="analogies" onclick="setMode('analogies')">🧩 אנלוגיות</button>
       <button class="btn btn-primary" data-mode="review" onclick="setMode('review')">🔁 סקירת טעויות</button>
+      <button class="btn btn-primary" data-mode="spacedRepetition" onclick="setMode('spacedRepetition')">🔄 חזרה מרווחת</button>
+      <button class="btn btn-primary" data-mode="timedQuiz" onclick="setMode('timedQuiz')">⏱️ תרגול מתוזמן</button>
+      <button class="btn btn-primary" data-mode="fillBlank" onclick="setMode('fillBlank')">📝 השלמת משפטים</button>
       <button class="btn btn-primary" data-mode="stats" onclick="setMode('stats')">📊 סטטיסטיקה</button>
       <button class="btn btn-primary" data-mode="essay" onclick="setMode('essay')">✍️ חיבור</button>
       <button class="btn btn-primary admin-hide" data-mode="admin" id="adminBtn" onclick="setMode('admin')">👑 אדמין</button>
@@ -343,9 +348,115 @@ body::before { content:''; position:fixed; inset:0; background: radial-gradient(
       <div id="review-content"></div>
     </div>
 
+    <!-- Spaced Repetition Mode -->
+    <div id="mode-spacedRepetition" style="display:none;">
+      <div class="card" style="text-align:center;margin-bottom:16px;">
+        <h3>🔄 חזרה מרווחת</h3>
+        <p style="opacity:0.7;font-size:0.9em;margin-top:4px;">מילים שמגיע הזמן לחזור עליהן</p>
+        <p style="margin-top:8px;"><strong id="spaced-count"></strong></p>
+      </div>
+      <div class="flashcard-container">
+        <div class="flashcard" id="spaced-flashcard" onclick="flipSpaced()">
+          <div class="flashcard-face">
+            <span class="flashcard-unit" id="sp-unit"></span>
+            <div class="flashcard-word" id="sp-word"></div>
+            <div style="font-size:0.9em; opacity:0.5; margin-top:8px;">לחץ להפוך</div>
+          </div>
+          <div class="flashcard-face flashcard-back">
+            <span class="flashcard-unit" id="sp-unit2"></span>
+            <div class="flashcard-word" id="sp-word2"></div>
+            <div class="flashcard-def" id="sp-def"></div>
+            <div class="flashcard-example" id="sp-example"></div>
+            <div style="margin-top:12px;font-size:0.8em;opacity:0.6;" id="sp-srs-info"></div>
+          </div>
+        </div>
+      </div>
+      <div class="flashcard-rating" id="sp-rating" style="display:none;gap:4px;flex-wrap:wrap;">
+        <button class="btn btn-error btn-small" onclick="rateSpaced(1)" style="flex:1;min-width:80px;">1⭐ מחדש</button>
+        <button class="btn btn-error btn-small" onclick="rateSpaced(2)" style="flex:1;min-width:80px;">2⭐ קשה</button>
+        <button class="btn btn-secondary btn-small" onclick="rateSpaced(3)" style="flex:1;min-width:80px;">3⭐ בינוני</button>
+        <button class="btn btn-success btn-small" onclick="rateSpaced(4)" style="flex:1;min-width:80px;">4⭐ קל</button>
+        <button class="btn btn-success btn-small" onclick="rateSpaced(5)" style="flex:1;min-width:80px;">5⭐ מושלם</button>
+      </div>
+      <div class="flashcard-nav">
+        <button class="btn btn-secondary" onclick="prevSpaced()">→ הקודם</button>
+        <button class="btn btn-primary" onclick="nextSpaced()">הבא ←</button>
+      </div>
+      <div class="flashcard-progress" id="sp-progress"></div>
+    </div>
+
+    <!-- Timed Quiz Mode -->
+    <div id="mode-timedQuiz" style="display:none;">
+      <div class="card" id="timed-quiz-setup">
+        <div style="text-align:center;">
+          <h3>⏱️ תרגול מתוזמן</h3>
+          <p style="opacity:0.7;margin:8px 0;">20 שאלות ב-5 דקות</p>
+          <button class="btn btn-primary" onclick="startTimedQuiz()">🚀 התחל</button>
+        </div>
+      </div>
+      <div class="card" id="timed-quiz-game" style="display:none;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
+          <div class="quiz-score" id="timed-quiz-score"></div>
+          <div id="timed-quiz-timer" style="font-size:1.4em;font-weight:bold;color:var(--accent);"></div>
+        </div>
+        <div class="quiz-word" id="timed-quiz-word"></div>
+        <div class="quiz-options" id="timed-quiz-options"></div>
+        <div class="quiz-feedback" id="timed-quiz-feedback" style="display:none;"></div>
+        <div class="quiz-next" id="timed-quiz-next" style="display:none;">
+          <button class="btn btn-primary" onclick="nextTimedQuiz()">שאלה הבאה →</button>
+        </div>
+      </div>
+      <div class="card" id="timed-quiz-results" style="display:none;">
+        <h3 style="text-align:center;margin-bottom:16px;">🏁 תוצאות</h3>
+        <div style="text-align:center;margin-bottom:16px;">
+          <div style="font-size:2.5em;font-weight:bold;color:var(--accent);" id="timed-final-score"></div>
+          <div style="opacity:0.7;margin-top:4px;">מתוך 20</div>
+        </div>
+        <div id="timed-quiz-stats"></div>
+        <div style="text-align:center;margin-top:16px;">
+          <button class="btn btn-primary" onclick="startTimedQuiz()">🔄 נסה שוב</button>
+          <button class="btn btn-secondary" onclick="setMode('stats')">📊 לסטטיסטיקות</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Fill in the Blank Mode -->
+    <div id="mode-fillBlank" style="display:none;">
+      <div class="card">
+        <div class="quiz-score" id="fill-score"></div>
+        <div style="text-align:center;margin-bottom:20px;">
+          <h3 style="margin-bottom:12px;">📝 השלמת משפטים</h3>
+          <div id="fill-sentence" style="font-size:1.3em;line-height:1.8;background:var(--glass);padding:20px;border-radius:12px;border:1px solid var(--border);"></div>
+        </div>
+        <div class="quiz-options" id="fill-options"></div>
+        <div class="quiz-feedback" id="fill-feedback" style="display:none;"></div>
+        <div class="quiz-next" id="fill-next" style="display:none;">
+          <button class="btn btn-primary" onclick="nextFillBlank()">משפט הבא →</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Stats Mode -->
     <div id="mode-stats" style="display:none;">
       <div id="stats-content"></div>
+      <div class="card" id="progress-chart-container">
+        <h3 style="margin-bottom:16px;">📈 התקדמות יומית - 30 יום אחרונים</h3>
+        <div style="display:flex;gap:16px;margin-bottom:16px;font-size:0.8em;">
+          <div style="display:flex;align-items:center;gap:4px;"><div style="width:12px;height:12px;background:#3498db;border-radius:2px;"></div>מילים נחזרו</div>
+          <div style="display:flex;align-items:center;gap:4px;"><div style="width:12px;height:12px;background:#27ae60;border-radius:2px;"></div>דיוק חידון (%)</div>
+          <div style="display:flex;align-items:center;gap:4px;"><div style="width:12px;height:12px;background:#9b59b6;border-radius:2px;"></div>מילים חדשות</div>
+        </div>
+        <div id="progress-chart" style="width:100%;height:300px;border:1px solid var(--border);border-radius:12px;background:var(--glass);padding:20px;">
+          <svg id="progress-svg" width="100%" height="100%" viewBox="0 0 700 260">
+            <defs>
+              <linearGradient id="gridGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" style="stop-color:var(--border);stop-opacity:0.3" />
+                <stop offset="100%" style="stop-color:var(--border);stop-opacity:0.1" />
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+      </div>
     </div>
 
     <div id="mode-essay" style="display:none;">
@@ -2498,6 +2609,26 @@ let quizCorrect = 0;
 let quizTotal = 0;
 let quizCurrent = null;
 
+// Sound system
+let audioContext = null;
+let soundEnabled = localStorage.getItem('soundEnabled') !== 'false';
+
+// Spaced repetition mode
+let spacedWords = [];
+let spIndex = 0;
+
+// Timed quiz
+let timedQuizTimer = null;
+let timedQuizStartTime = 0;
+let timedQuizAnswers = [];
+let timedQuizCurrent = null;
+let timedQuizIndex = 0;
+
+// Fill in the blank
+let fillCorrect = 0;
+let fillTotal = 0;
+let fillCurrent = null;
+
 // ============ FIREBASE INIT ============
 const firebaseConfig = {
   apiKey: "AIzaSyCTH-GOo1-g1jw5PnT5u12mqlj7vOErlao",
@@ -2511,6 +2642,54 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 let currentUid = null;
+
+// ============ SOUND SYSTEM ============
+function initAudio() {
+  if (!audioContext) {
+    try {
+      audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    } catch (e) {
+      console.warn('Audio not supported');
+    }
+  }
+}
+
+function playSound(type) {
+  if (!soundEnabled || !audioContext) return;
+  
+  try {
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    if (type === 'correct') {
+      // Pleasant ascending tone (ding)
+      oscillator.frequency.setValueAtTime(523.25, audioContext.currentTime); // C5
+      oscillator.frequency.setValueAtTime(659.25, audioContext.currentTime + 0.1); // E5
+      gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+    } else if (type === 'incorrect') {
+      // Short low buzz
+      oscillator.frequency.setValueAtTime(130.81, audioContext.currentTime); // C3
+      oscillator.type = 'square';
+      gainNode.gain.setValueAtTime(0.15, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
+    }
+    
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + (type === 'correct' ? 0.2 : 0.15));
+  } catch (e) {
+    console.warn('Sound failed:', e);
+  }
+}
+
+function toggleSound() {
+  soundEnabled = !soundEnabled;
+  localStorage.setItem('soundEnabled', soundEnabled);
+  document.getElementById('soundToggle').textContent = soundEnabled ? '🔊' : '🔇';
+  if (soundEnabled && !audioContext) initAudio();
+}
 let authMode = 'login'; // 'login' or 'register'
 let firestoreSaveTimeout = null;
 
@@ -2594,8 +2773,49 @@ async function loadFromFirestore() {
       if (data.essays) localStorage.setItem(sKey('essays'), JSON.stringify(data.essays));
       if (data.lastUnit) localStorage.setItem(username + '_lastUnit', data.lastUnit);
       if (data.analogy_stats) localStorage.setItem(sKey('analogy_stats'), JSON.stringify(data.analogy_stats));
+      if (data.dailyStats) localStorage.setItem(sKey('dailyStats'), JSON.stringify(data.dailyStats));
+      if (data.soundEnabled !== undefined) {
+        soundEnabled = data.soundEnabled;
+        localStorage.setItem('soundEnabled', soundEnabled);
+        document.getElementById('soundToggle').textContent = soundEnabled ? '🔊' : '🔇';
+      }
     }
   } catch(e) { console.error('Firestore load error:', e); }
+}
+
+function updateSpacedRepetitionCount() {
+  let count = getSpacedRepetitionWords().length;
+  let el = document.getElementById('spacedRepetitionCount');
+  if (el) {
+    el.textContent = count > 0 ? `🔄 ${count}` : '';
+    el.style.display = count > 0 ? 'inline' : 'none';
+  }
+}
+
+function updateDailyStats(type, value) {
+  let dailyStats = getData('dailyStats', []);
+  let today = new Date().toISOString().split('T')[0];
+  let todayStats = dailyStats.find(d => d.date === today);
+  
+  if (!todayStats) {
+    todayStats = { date: today, wordsReviewed: 0, quizScore: 0, newWords: 0 };
+    dailyStats.push(todayStats);
+  }
+  
+  if (type === 'wordReviewed') {
+    todayStats.wordsReviewed = (todayStats.wordsReviewed || 0) + 1;
+  } else if (type === 'newWord') {
+    todayStats.newWords = (todayStats.newWords || 0) + 1;
+  } else if (type === 'quizScore') {
+    todayStats.quizScore = value; // Override with latest score
+  }
+  
+  // Keep only last 30 days
+  if (dailyStats.length > 30) {
+    dailyStats = dailyStats.slice(-30);
+  }
+  
+  setData('dailyStats', dailyStats);
 }
 
 function saveToFirestore() {
@@ -2609,6 +2829,8 @@ function saveToFirestore() {
       essays: getData('essays', []),
       lastUnit: localStorage.getItem(username + '_lastUnit') || '',
       analogy_stats: getData('analogy_stats', {correct:0, total:0}),
+      dailyStats: getData('dailyStats', []),
+      soundEnabled: soundEnabled,
       lastSync: Date.now(),
       email: auth.currentUser ? auth.currentUser.email : ''
     };
@@ -2670,6 +2892,7 @@ function removeMistake(wordStr) {
 function updateSR(wordStr, quality) {
   // quality: 0=wrong, 1=hard, 2=easy
   let p = getProgress();
+  let isNewWord = !p[wordStr];
   let wp = p[wordStr] || { correct:0, wrong:0, lastSeen:0, interval:1, nextReview:0 };
   wp.lastSeen = Date.now();
   if (quality >= 1) {
@@ -2682,6 +2905,15 @@ function updateSR(wordStr, quality) {
   wp.nextReview = Date.now() + wp.interval * 86400000;
   p[wordStr] = wp;
   setProgress(p);
+  
+  // Track daily stats
+  updateDailyStats('wordReviewed');
+  if (isNewWord) {
+    updateDailyStats('newWord');
+  }
+  
+  // Update spaced repetition count
+  updateSpacedRepetitionCount();
 }
 
 // Sort by spaced repetition priority
@@ -2734,6 +2966,13 @@ function showApp() {
   applyFilter();
   setMode('flashcards');
   updateHeaderProgress();
+  
+  // Initialize sound system
+  initAudio();
+  document.getElementById('soundToggle').textContent = soundEnabled ? '🔊' : '🔇';
+  
+  // Update spaced repetition count
+  updateSpacedRepetitionCount();
 }
 
 function updateHeaderProgress() {
@@ -2766,6 +3005,9 @@ function applyFilter() {
   document.getElementById('wordCount').textContent = filteredWords.length + ' מילים';
   fcIndex = 0;
   
+  // Update spaced repetition count when filter changes
+  updateSpacedRepetitionCount();
+  
   if (currentMode === 'flashcards') showFlashcard();
   if (currentMode === 'quiz') startQuiz();
   if (currentMode === 'analogies') startAnalogies();
@@ -2778,17 +3020,20 @@ function setMode(mode) {
   document.querySelectorAll('.nav .btn').forEach(b => b.classList.remove('active'));
   document.querySelector('[data-mode="' + mode + '"]').classList.add('active');
   
-  ['flashcards','unknown','quiz','analogies','review','stats','essay','admin'].forEach(m => {
+  ['flashcards','unknown','quiz','analogies','review','spacedRepetition','timedQuiz','fillBlank','stats','essay','admin'].forEach(m => {
     let el = document.getElementById('mode-' + m);
     if (el) el.style.display = m === mode ? 'block' : 'none';
   });
-  document.getElementById('filtersBar').style.display = mode === 'stats' ? 'none' : 'flex';
+  document.getElementById('filtersBar').style.display = ['stats','timedQuiz'].includes(mode) ? 'none' : 'flex';
   
   if (mode === 'flashcards') showFlashcard();
   if (mode === 'unknown') showUnknownMode();
   if (mode === 'quiz') startQuiz();
   if (mode === 'analogies') startAnalogies();
   if (mode === 'review') showReview();
+  if (mode === 'spacedRepetition') showSpacedRepetitionMode();
+  if (mode === 'timedQuiz') showTimedQuizSetup();
+  if (mode === 'fillBlank') startFillBlank();
   if (mode === 'stats') showStats();
   if (mode === 'essay') initEssayMode();
   if (mode === 'admin') loadAdminPanel();
@@ -2823,8 +3068,13 @@ function flipCard() {
 function rateCard(q) {
   let w = filteredWords[fcIndex];
   updateSR(w.word, q);
-  if (q === 0) addMistake(w);
-  else if (q === 2) removeMistake(w.word);
+  if (q === 0) {
+    addMistake(w);
+    playSound('incorrect');
+  } else if (q === 2) {
+    removeMistake(w.word);
+    playSound('correct');
+  }
   nextCard();
 }
 
@@ -2881,10 +3131,12 @@ function answerQuiz(selected, btn, optDiv) {
     btn.classList.add('correct');
     updateSR(quizCurrent.word, 2);
     removeMistake(quizCurrent.word);
+    playSound('correct');
   } else {
     btn.classList.add('wrong');
     updateSR(quizCurrent.word, 0);
     addMistake(quizCurrent);
+    playSound('incorrect');
   }
   
   document.getElementById('quiz-score').textContent = '✅ ' + quizCorrect + ' / ' + quizTotal;
@@ -2996,8 +3248,15 @@ function flipUnknown() {
 function rateUnknown(q) {
   let w = unknownWords[ukIndex];
   updateSR(w.word, q);
-  if (q === 0) addMistake(w);
-  else { removeMistake(w.word); unknownWords.splice(ukIndex, 1); if (ukIndex >= unknownWords.length) ukIndex = 0; }
+  if (q === 0) {
+    addMistake(w);
+    playSound('incorrect');
+  } else { 
+    removeMistake(w.word); 
+    unknownWords.splice(ukIndex, 1); 
+    if (ukIndex >= unknownWords.length) ukIndex = 0;
+    playSound('correct');
+  }
   document.getElementById('unknown-count').textContent = unknownWords.length + ' מילים לא מוכרות';
   showUnknownCard();
 }
@@ -3051,6 +3310,126 @@ function showStats() {
   html += '<div style="text-align:center;margin-top:20px"><button class="btn btn-error btn-small" onclick="confirmReset()">🗑️ אפס התקדמות</button></div>';
   
   document.getElementById('stats-content').innerHTML = html;
+  
+  // Draw progress chart
+  drawProgressChart();
+}
+
+function drawProgressChart() {
+  let dailyStats = getData('dailyStats', []);
+  let svg = document.getElementById('progress-svg');
+  if (!svg) return;
+  
+  // Clear existing content except defs
+  while (svg.children.length > 1) {
+    svg.removeChild(svg.children[1]);
+  }
+  
+  // Get last 30 days
+  let days = [];
+  for (let i = 29; i >= 0; i--) {
+    let date = new Date();
+    date.setDate(date.getDate() - i);
+    let dateStr = date.toISOString().split('T')[0];
+    let stats = dailyStats.find(d => d.date === dateStr) || { date: dateStr, wordsReviewed: 0, quizScore: 0, newWords: 0 };
+    days.push(stats);
+  }
+  
+  if (days.length === 0) return;
+  
+  const width = 660; // SVG viewBox width - margins
+  const height = 200; // SVG viewBox height - margins
+  const xStep = width / (days.length - 1);
+  
+  // Find max values for scaling
+  let maxWords = Math.max(...days.map(d => d.wordsReviewed || 0));
+  let maxNew = Math.max(...days.map(d => d.newWords || 0));
+  let maxScore = 100; // Quiz score is always 0-100%
+  
+  let maxY = Math.max(maxWords, maxNew, maxScore);
+  if (maxY === 0) maxY = 10;
+  
+  // Grid lines
+  for (let i = 0; i <= 5; i++) {
+    let y = (height * i) / 5;
+    let line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute('x1', 0);
+    line.setAttribute('y1', height - y);
+    line.setAttribute('x2', width);
+    line.setAttribute('y2', height - y);
+    line.setAttribute('stroke', 'var(--border)');
+    line.setAttribute('stroke-opacity', '0.3');
+    svg.appendChild(line);
+    
+    // Y-axis labels
+    let text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    text.setAttribute('x', -5);
+    text.setAttribute('y', height - y + 4);
+    text.setAttribute('font-size', '10');
+    text.setAttribute('fill', 'var(--text)');
+    text.setAttribute('opacity', '0.6');
+    text.setAttribute('text-anchor', 'end');
+    text.textContent = Math.round((maxY * i) / 5);
+    svg.appendChild(text);
+  }
+  
+  // Draw lines
+  function drawLine(data, color) {
+    if (data.length < 2) return;
+    
+    let path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    let d = '';
+    
+    data.forEach((value, i) => {
+      let x = i * xStep;
+      let y = height - (value / maxY) * height;
+      if (i === 0) {
+        d += `M ${x} ${y}`;
+      } else {
+        d += ` L ${x} ${y}`;
+      }
+    });
+    
+    path.setAttribute('d', d);
+    path.setAttribute('stroke', color);
+    path.setAttribute('stroke-width', '2');
+    path.setAttribute('fill', 'none');
+    path.setAttribute('opacity', '0.8');
+    svg.appendChild(path);
+    
+    // Add dots
+    data.forEach((value, i) => {
+      if (value > 0) {
+        let circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('cx', i * xStep);
+        circle.setAttribute('cy', height - (value / maxY) * height);
+        circle.setAttribute('r', '3');
+        circle.setAttribute('fill', color);
+        svg.appendChild(circle);
+      }
+    });
+  }
+  
+  // Draw data lines
+  drawLine(days.map(d => d.wordsReviewed || 0), '#3498db');
+  drawLine(days.map(d => d.quizScore || 0), '#27ae60');
+  drawLine(days.map(d => d.newWords || 0), '#9b59b6');
+  
+  // X-axis dates (show every 5th day)
+  days.forEach((day, i) => {
+    if (i % 5 === 0) {
+      let date = new Date(day.date);
+      let text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      text.setAttribute('x', i * xStep);
+      text.setAttribute('y', height + 15);
+      text.setAttribute('font-size', '9');
+      text.setAttribute('fill', 'var(--text)');
+      text.setAttribute('opacity', '0.6');
+      text.setAttribute('text-anchor', 'middle');
+      text.textContent = date.getDate() + '/' + (date.getMonth() + 1);
+      svg.appendChild(text);
+    }
+  });
 }
 
 function statCard(num, label) {
@@ -3074,6 +3453,365 @@ function toggleTheme() {
   let isLight = document.body.classList.contains('light');
   localStorage.setItem('theme', isLight ? 'light' : 'dark');
   document.getElementById('themeToggle').textContent = isLight ? '🌞' : '🌙';
+}
+
+// ============ SPACED REPETITION MODE ============
+function showSpacedRepetitionMode() {
+  spacedWords = getSpacedRepetitionWords();
+  spIndex = 0;
+  document.getElementById('spaced-count').textContent = spacedWords.length + ' מילים לחזרה';
+  showSpacedCard();
+}
+
+function getSpacedRepetitionWords() {
+  let p = getProgress();
+  let now = Date.now();
+  return VOCAB.filter(w => {
+    let wp = p[w.word];
+    return wp && wp.nextReview && wp.nextReview <= now;
+  }).sort((a, b) => {
+    let aData = p[a.word];
+    let bData = p[b.word];
+    return aData.nextReview - bData.nextReview;
+  });
+}
+
+function showSpacedCard() {
+  if (!spacedWords.length) {
+    document.getElementById('spaced-flashcard').innerHTML = 
+      '<div class="flashcard-face" style="position:relative;"><div class="flashcard-word">🎉</div><div style="font-size:1.1em;">אין מילים לחזרה כרגע!</div><div style="font-size:0.9em;opacity:0.6;margin-top:8px;">חזור מאוחר יותר</div></div>';
+    document.getElementById('sp-rating').style.display = 'none';
+    document.getElementById('sp-progress').textContent = '';
+    return;
+  }
+  if (spIndex >= spacedWords.length) spIndex = 0;
+  if (spIndex < 0) spIndex = spacedWords.length - 1;
+  
+  let w = spacedWords[spIndex];
+  let p = getProgress();
+  let wp = p[w.word];
+  
+  // Reset card HTML if it was emptied
+  let fc = document.getElementById('spaced-flashcard');
+  if (!document.getElementById('sp-word')) {
+    fc.innerHTML = 
+      '<div class="flashcard-face"><span class="flashcard-unit" id="sp-unit"></span><div class="flashcard-word" id="sp-word"></div><div style="font-size:0.9em;opacity:0.5;margin-top:8px;">לחץ להפוך</div></div>' +
+      '<div class="flashcard-face flashcard-back"><span class="flashcard-unit" id="sp-unit2"></span><div class="flashcard-word" id="sp-word2"></div><div class="flashcard-def" id="sp-def"></div><div class="flashcard-example" id="sp-example"></div><div style="margin-top:12px;font-size:0.8em;opacity:0.6;" id="sp-srs-info"></div></div>';
+  }
+  
+  fc.classList.remove('flipped');
+  document.getElementById('sp-rating').style.display = 'none';
+  document.getElementById('sp-word').textContent = w.word;
+  document.getElementById('sp-word2').textContent = w.word;
+  document.getElementById('sp-def').textContent = w.definition;
+  document.getElementById('sp-example').textContent = w.example || '';
+  document.getElementById('sp-example').style.display = w.example ? 'block' : 'none';
+  document.getElementById('sp-unit').textContent = 'יחידה ' + w.unit;
+  document.getElementById('sp-unit2').textContent = 'יחידה ' + w.unit;
+  document.getElementById('sp-progress').textContent = (spIndex + 1) + ' / ' + spacedWords.length;
+  
+  // Show SRS info
+  if (wp) {
+    let daysOverdue = Math.max(0, Math.floor((Date.now() - wp.nextReview) / 86400000));
+    let info = 'רמה: ' + Math.min(wp.interval, 30) + ' ימים';
+    if (daysOverdue > 0) info += ' | איחור: ' + daysOverdue + ' ימים';
+    document.getElementById('sp-srs-info').textContent = info;
+  }
+}
+
+function flipSpaced() {
+  document.getElementById('spaced-flashcard').classList.toggle('flipped');
+  if (document.getElementById('spaced-flashcard').classList.contains('flipped')) {
+    document.getElementById('sp-rating').style.display = 'flex';
+  }
+}
+
+function rateSpaced(quality) {
+  let w = spacedWords[spIndex];
+  updateSRAdvanced(w.word, quality);
+  
+  if (quality <= 2) {
+    playSound('incorrect');
+    addMistake(w);
+  } else {
+    playSound('correct');
+    removeMistake(w.word);
+    spacedWords.splice(spIndex, 1);
+    if (spIndex >= spacedWords.length) spIndex = 0;
+  }
+  
+  document.getElementById('spaced-count').textContent = spacedWords.length + ' מילים לחזרה';
+  updateSpacedRepetitionCount();
+  showSpacedCard();
+}
+
+function updateSRAdvanced(wordStr, quality) {
+  // SM-2 style algorithm with 5 levels
+  let p = getProgress();
+  let isNewWord = !p[wordStr];
+  let wp = p[wordStr] || { correct:0, wrong:0, lastSeen:0, interval:1, nextReview:0, easeFactor:2.5, repetitions:0 };
+  wp.lastSeen = Date.now();
+  
+  if (quality >= 3) {
+    wp.correct++;
+    wp.repetitions++;
+    
+    if (wp.repetitions === 1) {
+      wp.interval = 1;
+    } else if (wp.repetitions === 2) {
+      wp.interval = 6;
+    } else {
+      wp.interval = Math.round(wp.interval * wp.easeFactor);
+    }
+    
+    wp.easeFactor = Math.max(1.3, wp.easeFactor + (0.1 - (5-quality) * (0.08 + (5-quality) * 0.02)));
+  } else {
+    wp.wrong++;
+    wp.repetitions = 0;
+    wp.interval = 1;
+  }
+  
+  wp.interval = Math.min(wp.interval, 365); // Max 1 year
+  wp.nextReview = Date.now() + wp.interval * 86400000;
+  p[wordStr] = wp;
+  setProgress(p);
+  
+  // Track daily stats
+  updateDailyStats('wordReviewed');
+  if (isNewWord) {
+    updateDailyStats('newWord');
+  }
+  
+  // Update spaced repetition count
+  updateSpacedRepetitionCount();
+}
+
+function nextSpaced() { spIndex++; showSpacedCard(); }
+function prevSpaced() { spIndex--; showSpacedCard(); }
+
+// ============ TIMED QUIZ MODE ============
+function showTimedQuizSetup() {
+  document.getElementById('timed-quiz-setup').style.display = 'block';
+  document.getElementById('timed-quiz-game').style.display = 'none';
+  document.getElementById('timed-quiz-results').style.display = 'none';
+}
+
+function startTimedQuiz() {
+  timedQuizAnswers = [];
+  timedQuizIndex = 0;
+  timedQuizStartTime = Date.now();
+  
+  document.getElementById('timed-quiz-setup').style.display = 'none';
+  document.getElementById('timed-quiz-game').style.display = 'block';
+  document.getElementById('timed-quiz-results').style.display = 'none';
+  
+  // Start 5-minute timer
+  let timeLeft = 5 * 60; // 5 minutes in seconds
+  timedQuizTimer = setInterval(() => {
+    timeLeft--;
+    let mins = Math.floor(timeLeft / 60);
+    let secs = timeLeft % 60;
+    document.getElementById('timed-quiz-timer').textContent = mins + ':' + secs.toString().padStart(2, '0');
+    
+    if (timeLeft <= 0) {
+      clearInterval(timedQuizTimer);
+      finishTimedQuiz();
+    }
+  }, 1000);
+  
+  nextTimedQuiz();
+}
+
+function nextTimedQuiz() {
+  if (timedQuizIndex >= 20) {
+    finishTimedQuiz();
+    return;
+  }
+  
+  if (filteredWords.length < 4) return;
+  
+  let idx = Math.floor(Math.random() * filteredWords.length);
+  timedQuizCurrent = filteredWords[idx];
+  
+  let wrongs = shuffle(VOCAB.filter(w => w.word !== timedQuizCurrent.word)).slice(0, 3);
+  let options = shuffle([timedQuizCurrent, ...wrongs]);
+  
+  document.getElementById('timed-quiz-score').textContent = '✅ ' + timedQuizAnswers.filter(a => a.correct).length + ' / ' + (timedQuizIndex + 1);
+  document.getElementById('timed-quiz-word').textContent = timedQuizCurrent.word;
+  document.getElementById('timed-quiz-feedback').style.display = 'none';
+  document.getElementById('timed-quiz-next').style.display = 'none';
+  
+  let optDiv = document.getElementById('timed-quiz-options');
+  optDiv.innerHTML = '';
+  options.forEach(o => {
+    let btn = document.createElement('button');
+    btn.className = 'quiz-option';
+    btn.textContent = o.definition.substring(0, 80);
+    btn.onclick = () => answerTimedQuiz(o, btn, optDiv);
+    optDiv.appendChild(btn);
+  });
+}
+
+function answerTimedQuiz(selected, btn, optDiv) {
+  let correct = selected.word === timedQuizCurrent.word;
+  let answerTime = Date.now();
+  
+  timedQuizAnswers.push({
+    word: timedQuizCurrent.word,
+    correct: correct,
+    timeMs: answerTime - (timedQuizAnswers.length === 0 ? timedQuizStartTime : timedQuizAnswers[timedQuizAnswers.length - 1].endTime || timedQuizStartTime)
+  });
+  timedQuizAnswers[timedQuizAnswers.length - 1].endTime = answerTime;
+  
+  // Disable all options
+  optDiv.querySelectorAll('.quiz-option').forEach(b => {
+    b.classList.add('disabled');
+    if (b.textContent === timedQuizCurrent.definition.substring(0, 80)) {
+      b.classList.add('correct');
+    }
+  });
+  
+  if (correct) {
+    btn.classList.add('correct');
+    playSound('correct');
+  } else {
+    btn.classList.add('wrong');
+    playSound('incorrect');
+  }
+  
+  let fb = document.getElementById('timed-quiz-feedback');
+  fb.style.display = 'block';
+  fb.className = 'quiz-feedback ' + (correct ? 'correct' : 'wrong');
+  fb.innerHTML = (correct ? '✅ נכון!' : '❌ לא נכון') + '<br><strong>' + timedQuizCurrent.word + '</strong>: ' + timedQuizCurrent.definition;
+  
+  document.getElementById('timed-quiz-next').style.display = 'block';
+  timedQuizIndex++;
+}
+
+function finishTimedQuiz() {
+  if (timedQuizTimer) {
+    clearInterval(timedQuizTimer);
+    timedQuizTimer = null;
+  }
+  
+  let correctCount = timedQuizAnswers.filter(a => a.correct).length;
+  let totalTime = timedQuizAnswers.length > 0 ? timedQuizAnswers[timedQuizAnswers.length - 1].endTime - timedQuizStartTime : 0;
+  let avgTime = timedQuizAnswers.length > 0 ? totalTime / timedQuizAnswers.length / 1000 : 0;
+  
+  document.getElementById('timed-quiz-game').style.display = 'none';
+  document.getElementById('timed-quiz-results').style.display = 'block';
+  
+  document.getElementById('timed-final-score').textContent = correctCount;
+  
+  let statsHTML = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">';
+  statsHTML += '<div style="text-align:center;padding:12px;background:var(--glass);border-radius:10px;"><div style="font-size:1.4em;font-weight:bold;color:var(--accent);">' + Math.round(correctCount/20*100) + '%</div><div style="font-size:0.8em;opacity:0.7;">דיוק</div></div>';
+  statsHTML += '<div style="text-align:center;padding:12px;background:var(--glass);border-radius:10px;"><div style="font-size:1.4em;font-weight:bold;color:var(--accent2);">' + avgTime.toFixed(1) + 's</div><div style="font-size:0.8em;opacity:0.7;">ממוצע לשאלה</div></div>';
+  statsHTML += '</div>';
+  document.getElementById('timed-quiz-stats').innerHTML = statsHTML;
+  
+  // Save results
+  let dailyStats = getData('dailyStats', []);
+  let today = new Date().toISOString().split('T')[0];
+  let todayStats = dailyStats.find(d => d.date === today);
+  if (!todayStats) {
+    todayStats = { date: today, wordsReviewed: 0, quizScore: 0, newWords: 0, timedQuizzes: [] };
+    dailyStats.push(todayStats);
+  }
+  todayStats.timedQuizzes = todayStats.timedQuizzes || [];
+  todayStats.timedQuizzes.push({ score: correctCount, total: 20, time: totalTime });
+  todayStats.quizScore = Math.round(correctCount / 20 * 100);
+  
+  if (dailyStats.length > 30) dailyStats = dailyStats.slice(-30);
+  setData('dailyStats', dailyStats);
+}
+
+// ============ FILL IN THE BLANK MODE ============
+function startFillBlank() {
+  fillCorrect = 0;
+  fillTotal = 0;
+  nextFillBlank();
+}
+
+function nextFillBlank() {
+  // Get words with examples
+  let wordsWithExamples = filteredWords.filter(w => w.example && w.example.trim());
+  if (!wordsWithExamples.length) {
+    document.getElementById('fill-sentence').innerHTML = '<div style="color:var(--error);text-align:center;">אין מילים עם דוגמאות ביחידות הנבחרות</div>';
+    document.getElementById('fill-options').innerHTML = '';
+    return;
+  }
+  
+  fillCurrent = wordsWithExamples[Math.floor(Math.random() * wordsWithExamples.length)];
+  
+  // Create sentence with blank
+  let sentence = fillCurrent.example;
+  sentence = sentence.replace(new RegExp(fillCurrent.word, 'g'), '<strong style="color:var(--accent);background:var(--glass);padding:4px 12px;border-radius:6px;border:2px dashed var(--accent);">______</strong>');
+  
+  document.getElementById('fill-sentence').innerHTML = sentence;
+  
+  // Get 3 wrong answers from same unit
+  let sameUnitWords = VOCAB.filter(w => w.unit === fillCurrent.unit && w.word !== fillCurrent.word);
+  let wrongs = shuffle(sameUnitWords).slice(0, 3);
+  let options = shuffle([fillCurrent, ...wrongs]);
+  
+  document.getElementById('fill-score').textContent = '✅ ' + fillCorrect + ' / ' + fillTotal;
+  document.getElementById('fill-feedback').style.display = 'none';
+  document.getElementById('fill-next').style.display = 'none';
+  
+  let optDiv = document.getElementById('fill-options');
+  optDiv.innerHTML = '';
+  options.forEach(o => {
+    let btn = document.createElement('button');
+    btn.className = 'quiz-option';
+    btn.textContent = o.word;
+    btn.onclick = () => answerFillBlank(o, btn, optDiv);
+    optDiv.appendChild(btn);
+  });
+}
+
+function answerFillBlank(selected, btn, optDiv) {
+  fillTotal++;
+  let correct = selected.word === fillCurrent.word;
+  
+  // Disable all options
+  optDiv.querySelectorAll('.quiz-option').forEach(b => {
+    b.classList.add('disabled');
+    if (b.textContent === fillCurrent.word) {
+      b.classList.add('correct');
+    }
+  });
+  
+  if (correct) {
+    fillCorrect++;
+    btn.classList.add('correct');
+    playSound('correct');
+  } else {
+    btn.classList.add('wrong');
+    playSound('incorrect');
+  }
+  
+  document.getElementById('fill-score').textContent = '✅ ' + fillCorrect + ' / ' + fillTotal;
+  
+  // Update sentence to show correct answer
+  let sentence = fillCurrent.example;
+  sentence = sentence.replace(new RegExp(fillCurrent.word, 'g'), '<strong style="color:var(--success);background:rgba(0,184,148,0.1);padding:4px 12px;border-radius:6px;border:2px solid var(--success);">' + fillCurrent.word + '</strong>');
+  document.getElementById('fill-sentence').innerHTML = sentence;
+  
+  let fb = document.getElementById('fill-feedback');
+  fb.style.display = 'block';
+  fb.className = 'quiz-feedback ' + (correct ? 'correct' : 'wrong');
+  fb.innerHTML = (correct ? '✅ נכון!' : '❌ לא נכון') + '<br><strong>' + fillCurrent.word + '</strong>: ' + fillCurrent.definition;
+  
+  document.getElementById('fill-next').style.display = 'block';
+  
+  // Track progress
+  if (correct) {
+    updateSR(fillCurrent.word, 2);
+    removeMistake(fillCurrent.word);
+  } else {
+    updateSR(fillCurrent.word, 0);
+    addMistake(fillCurrent);
+  }
 }
 
 // ============ ANALOGIES MODE ============
@@ -3349,8 +4087,10 @@ function answerAnalogy(selected, btn, optDiv) {
   if (correct) {
     analogyCorrect++;
     btn.classList.add('correct');
+    playSound('correct');
   } else {
     btn.classList.add('wrong');
+    playSound('incorrect');
   }
 
   document.getElementById('analogy-score').textContent = '🧩 ' + analogyCorrect + ' / ' + analogyTotal;
@@ -3845,6 +4585,9 @@ async function loadAdminPanel() {
     container.innerHTML = '<div class="card" style="text-align:center;color:var(--error);">❌ שגיאה: ' + e.message + '</div>';
   }
 }
+
+// Initialize sound toggle on page load
+document.getElementById('soundToggle').textContent = soundEnabled ? '🔊' : '🔇';
 </script>
 </body>
 </html>
