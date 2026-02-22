@@ -3462,7 +3462,7 @@ function saveEssay() {
   if (!text) return;
   let essays = getData('essays', []);
   let scoreEl = document.getElementById('essay-score-num');
-  let score = scoreEl.textContent ? parseInt(scoreEl.textContent) : null;
+  let score = scoreEl.textContent ? parseFloat(scoreEl.textContent) : null;
   essays.unshift({
     prompt: ESSAY_PROMPTS[currentEssayPromptIdx].prompt,
     text: text,
