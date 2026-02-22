@@ -153,12 +153,13 @@ body::before { content:''; position:fixed; inset:0; background: radial-gradient(
 .essay-textarea { padding-left: 45px !important; }
 .line-numbers {
   position: absolute; top: 0; left: 0; width: 38px; height: 100%;
-  background: var(--glass); border-right: 1px solid var(--border);
-  border-radius: 14px 0 0 14px; padding-top: 16px; font-size: 0.85em;
-  line-height: 1.8; color: var(--text); opacity: 0.4; overflow: hidden;
+  background: rgba(0,0,0,0.05); border-right: 1px solid var(--border);
+  border-radius: 14px 0 0 14px; padding-top: 16px; font-size: 1.05em;
+  line-height: 1.8; color: var(--text); opacity: 0.5; overflow: hidden;
   text-align: center; pointer-events: none; direction: ltr;
-  font-family: monospace; white-space: pre-line;
+  font-family: inherit; white-space: pre-line; z-index: 1;
 }
+[data-theme="dark"] .line-numbers { background: rgba(255,255,255,0.05); }
 .essay-model { background:var(--glass); border:1px solid var(--border); border-radius:14px; padding:20px; margin:12px 0; line-height:1.8; white-space:pre-wrap; direction:rtl; }
 .essay-tips { list-style:none; padding:0; }
 .essay-tips li { padding:6px 0; border-bottom:1px solid var(--border); }
@@ -378,7 +379,36 @@ body::before { content:''; position:fixed; inset:0; background: radial-gradient(
           </div>
         </div>
         <div class="essay-write-area">
-          <div class="line-numbers" id="essay-line-nums"></div>
+          <div class="line-numbers" id="essay-line-nums">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30</div>
           <textarea class="essay-textarea" id="essay-textarea" placeholder="כתוב את החיבור שלך כאן..." oninput="updateEssayWordCount();updateLineNumbers()" onscroll="document.getElementById('essay-line-nums').scrollTop=this.scrollTop"></textarea>
         </div>
         <div class="essay-word-count">מילים: <span id="essay-wc">0</span></div>
@@ -3742,15 +3772,15 @@ function updateLineNumbers() {
   var ta = document.getElementById('essay-textarea');
   var ln = document.getElementById('essay-line-nums');
   if (!ta || !ln) return;
-  var style = window.getComputedStyle(ta);
-  var lh = parseFloat(style.lineHeight) || 24;
-  var lines = Math.max(25, Math.ceil(ta.scrollHeight / lh));
+  // Always show at least 30 line numbers
   var nums = '';
-  for (var i = 1; i <= lines; i++) nums += i + '\n';
+  for (var i = 1; i <= 35; i++) nums += i + '\n';
   ln.textContent = nums;
-  ln.style.paddingTop = style.paddingTop;
-  ln.style.lineHeight = style.lineHeight;
-  ln.style.fontSize = style.fontSize;
+  // Match textarea styling exactly
+  ln.style.paddingTop = '16px';
+  ln.style.lineHeight = '1.8';
+  ln.style.fontSize = '1.05em';
+  ln.style.fontFamily = 'inherit';
 }
 </script>
 </body>
