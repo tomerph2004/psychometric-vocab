@@ -70,6 +70,9 @@ body::before { content:''; position:fixed; inset:0; background: radial-gradient(
 .filters select:focus { border-color:var(--accent); }
 .filters select option { background:#1a1b2e; color:#eaeaef; }
 .light .filters select option { background:#ffffff; color:#2d2d3f; }
+#essayPromptSelect option { background:#1a1b2e; color:#eaeaef; }
+.light #essayPromptSelect { background:#ffffff; color:#2d2d3f; border-color:rgba(0,0,0,0.15); }
+.light #essayPromptSelect option { background:#ffffff; color:#2d2d3f; }
 .filters .info { font-size:0.85em; opacity:0.7; margin-right:auto; }
 
 /* Flashcard */
@@ -517,7 +520,8 @@ body::before { content:''; position:fixed; inset:0; background: radial-gradient(
             הציגו עמדה מנומקת, תמכו בטיעונים ובדוגמאות, והתייחסו גם לצד השני. נבדק על <b>תוכן</b> (טיעונים + חשיבה ביקורתית) ו<b>לשון</b> (בהירות + דיוק).
           </div>
           <div style="margin-bottom:12px;">
-            <select id="essayPromptSelect" onchange="selectEssayPrompt(this.value)" style="width:100%;padding:10px 14px;border-radius:10px;border:1px solid var(--border);background:var(--glass);backdrop-filter:blur(10px);color:var(--text);font-family:inherit;font-size:0.95em;direction:rtl;cursor:pointer;">
+            <label style="font-size:0.9em;opacity:0.8;margin-bottom:4px;display:block;">📋 בחר נושא:</label>
+            <select id="essayPromptSelect" onchange="selectEssayPrompt(this.value)" style="width:100%;padding:12px 14px;border-radius:10px;border:2px solid rgba(255,255,255,0.2);background:#1a1b2e;color:#eaeaef;font-family:inherit;font-size:0.95em;direction:rtl;cursor:pointer;-webkit-appearance:menulist;">
             </select>
           </div>
           <div class="essay-prompt-text" id="essay-prompt-text"></div>
@@ -5578,7 +5582,7 @@ function setMode(mode) {
     if (el) el.style.display = m === mode ? 'block' : 'none';
   });
   
-  document.getElementById('filtersBar').style.display = ['stats','timedQuiz'].includes(mode) ? 'none' : 'flex';
+  document.getElementById('filtersBar').style.display = ['stats','timedQuiz','essay','analogies'].includes(mode) ? 'none' : 'flex';
   
   if (mode === 'flashcards') showFlashcard();
   if (mode === 'unknown') showUnknownMode();
