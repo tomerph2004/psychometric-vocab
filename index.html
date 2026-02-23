@@ -179,6 +179,13 @@ body::before { content:''; position:fixed; inset:0; background: radial-gradient(
 .essay-tab.active { border-color:var(--accent); background:var(--glow); }
 
 /* Mobile */
+/* Language Selection */
+#languageSelect .card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 40px var(--glow);
+  border-color: var(--accent);
+}
+
 @media(max-width:600px) {
   .header h1 { font-size:1em; }
   .container { padding:12px; }
@@ -187,6 +194,12 @@ body::before { content:''; position:fixed; inset:0; background: radial-gradient(
   #welcome h2 { font-size:2em; }
   #welcome .welcome-emoji { font-size:3em; }
   .card { padding:18px; border-radius:16px; }
+  
+  /* Language selection mobile */
+  #languageSelect div[style*="grid-template-columns"] {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
 }
 </style>
 </head>
@@ -196,6 +209,7 @@ body::before { content:''; position:fixed; inset:0; background: radial-gradient(
   <div class="header-right">
     <span id="userDisplay"></span>
     <span id="spacedRepetitionCount" style="font-size:0.8em;opacity:0.7;margin-right:8px;"></span>
+    <button class="btn btn-small btn-secondary" id="backToSelectionBtn" onclick="backToLanguageSelection()" style="display:none;" title="חזרה למסך הבחירה">🔙</button>
     <button class="btn btn-small btn-secondary" id="logoutBtn" onclick="logoutUser()" style="display:none;" title="התנתק">🚪</button>
     <button class="btn btn-small btn-primary" id="soundToggle" onclick="toggleSound()">🔊</button>
     <button class="btn btn-small btn-primary" id="themeToggle" onclick="toggleTheme()">🌙</button>
@@ -220,6 +234,33 @@ body::before { content:''; position:fixed; inset:0; background: radial-gradient(
     </div>
   </div>
 
+  <!-- Language Selection Screen -->
+  <div id="languageSelect" style="display:none;">
+    <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:80vh; text-align:center; animation: fadeInUp 0.6s ease-out;">
+      <div style="font-size:4em; margin-bottom:12px;">📚</div>
+      <h2 style="font-size:2.8em; font-weight:900; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; margin-bottom:16px;">עושר לשוני</h2>
+      <p style="margin-bottom:32px; opacity:0.7; font-size:1.05em; line-height:1.7;">בחר שפה לתרגול:</p>
+      
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px; max-width:600px; width:100%;">
+        <!-- Hebrew Button -->
+        <div class="card" onclick="selectLanguage('hebrew')" style="cursor:pointer; transition: transform 0.2s; text-align:center; padding:32px;">
+          <div style="font-size:3em; margin-bottom:12px;">📖</div>
+          <h3 style="font-size:1.8em; font-weight:bold; color:var(--accent); margin-bottom:8px;">עברית</h3>
+          <p style="opacity:0.6; margin-bottom:16px;">אוצר מילים פסיכומטרי</p>
+          <div style="font-weight:bold; color:var(--success);">1,994 מילים</div>
+        </div>
+        
+        <!-- English Button -->
+        <div class="card" onclick="selectLanguage('english')" style="cursor:pointer; transition: transform 0.2s; text-align:center; padding:32px;">
+          <div style="font-size:3em; margin-bottom:12px;">📖</div>
+          <h3 style="font-size:1.8em; font-weight:bold; color:var(--accent); margin-bottom:8px;">🇬🇧 English</h3>
+          <p style="opacity:0.6; margin-bottom:16px;">Academic Vocabulary</p>
+          <div style="font-weight:bold; color:var(--success);">2,000 words</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Main App -->
   <div id="mainApp" style="display:none;">
     <div class="nav">
@@ -231,18 +272,13 @@ body::before { content:''; position:fixed; inset:0; background: radial-gradient(
       <button class="btn btn-primary" data-mode="spacedRepetition" onclick="setMode('spacedRepetition')">🔄 חזרה מרווחת</button>
       <button class="btn btn-primary" data-mode="timedQuiz" onclick="setMode('timedQuiz')">⏱️ תרגול מתוזמן</button>
       <button class="btn btn-primary" data-mode="fillBlank" onclick="setMode('fillBlank')">📝 השלמת משפטים</button>
-      <button class="btn btn-primary" data-mode="english" onclick="setMode('english')">🇬🇧 English</button>
+      <!-- English mode now handled by language selection screen -->
       <button class="btn btn-primary" data-mode="stats" onclick="setMode('stats')">📊 סטטיסטיקה</button>
       <button class="btn btn-primary" data-mode="essay" onclick="setMode('essay')">✍️ חיבור</button>
       <button class="btn btn-primary admin-hide" data-mode="admin" id="adminBtn" onclick="setMode('admin')">👑 אדמין</button>
     </div>
     
-    <!-- English Sub-Navigation (hidden by default) -->
-    <div class="nav" id="englishSubNav" style="display:none;margin-top:10px;padding:10px;background:var(--bg2);border-radius:15px;">
-      <button class="btn btn-secondary" onclick="setEnglishMode('vocab')">🔤 Vocabulary Cards</button>
-      <button class="btn btn-secondary" onclick="setEnglishMode('sentences')">📝 Sentence Completion</button>
-      <button class="btn btn-secondary" onclick="setEnglishMode('match')">🔄 Word Match</button>
-    </div>
+    <!-- English Sub-Navigation removed - now using dedicated English app -->
 
     <div class="filters" id="filtersBar">
       <label>יחידה:</label>
@@ -680,6 +716,207 @@ body::before { content:''; position:fixed; inset:0; background: radial-gradient(
     </div>
 
   </div>
+
+  <!-- English App -->
+  <div id="englishApp" style="display:none;">
+    <div class="nav">
+      <button class="btn btn-primary" data-mode="eng-flashcards" onclick="setEngMode('flashcards')">🃏 Vocabulary Cards</button>
+      <button class="btn btn-primary" data-mode="eng-unknown" onclick="setEngMode('unknown')">🆕 Unknown Words</button>
+      <button class="btn btn-primary" data-mode="eng-quiz" onclick="setEngMode('quiz')">❓ Quiz</button>
+      <button class="btn btn-primary" data-mode="eng-sentences" onclick="setEngMode('sentences')">📝 Sentence Completion</button>
+      <button class="btn btn-primary" data-mode="eng-match" onclick="setEngMode('match')">🔄 Word Match</button>
+      <button class="btn btn-primary" data-mode="eng-srs" onclick="setEngMode('spacedRepetition')">🔄 Spaced Repetition</button>
+      <button class="btn btn-primary" data-mode="eng-stats" onclick="setEngMode('stats')">📊 Statistics</button>
+    </div>
+    
+    <div class="filters" id="englishFiltersBar">
+      <label>Unit:</label>
+      <select id="engUnitFilter" onchange="applyEngFilter()">
+        <option value="all">All Units</option>
+      </select>
+      <label>Sort:</label>
+      <select id="engSortFilter" onchange="applyEngFilter()">
+        <option value="spaced">Spaced Repetition</option>
+        <option value="random">Random</option>
+        <option value="alpha">A-Z</option>
+        <option value="unit">By Unit</option>
+      </select>
+      <span class="info" id="engWordCount"></span>
+    </div>
+
+    <!-- English Flashcards Mode -->
+    <div id="eng-mode-flashcards" style="display:none;">
+      <div class="flashcard-container">
+        <div class="flashcard" id="eng-flashcard" onclick="flipEngCard()">
+          <div class="flashcard-face">
+            <span class="flashcard-unit" id="eng-fc-unit"></span>
+            <div class="flashcard-word" id="eng-fc-word" style="direction:ltr;text-align:center;"></div>
+            <div style="font-size:0.9em; opacity:0.5; margin-top:8px;">Click to flip</div>
+          </div>
+          <div class="flashcard-face flashcard-back">
+            <span class="flashcard-unit" id="eng-fc-unit2"></span>
+            <div class="flashcard-word" id="eng-fc-word2" style="direction:ltr;text-align:center;"></div>
+            <div class="flashcard-def" id="eng-fc-def" style="direction:ltr;text-align:center;font-size:1.1em;"></div>
+            <div class="flashcard-example" id="eng-fc-heb" style="color:var(--accent);font-weight:bold;margin-bottom:8px;"></div>
+            <div class="flashcard-example" id="eng-fc-example" style="direction:ltr;text-align:center;"></div>
+          </div>
+        </div>
+      </div>
+      <div class="flashcard-rating" id="eng-fc-rating" style="display:none;">
+        <button class="btn btn-error btn-small" onclick="rateEngCard(0)">❌ Don't know</button>
+        <button class="btn btn-secondary btn-small" onclick="rateEngCard(1)">🤔 Difficult</button>
+        <button class="btn btn-success btn-small" onclick="rateEngCard(2)">✅ I know it</button>
+      </div>
+      <div class="flashcard-nav">
+        <button class="btn btn-secondary" onclick="prevEngCard()">← Previous</button>
+        <button class="btn btn-primary" onclick="nextEngCard()">Next →</button>
+      </div>
+      <div class="flashcard-progress" id="eng-fc-progress"></div>
+    </div>
+
+    <!-- English Unknown Words Mode -->
+    <div id="eng-mode-unknown" style="display:none;">
+      <div class="card" style="text-align:center;margin-bottom:16px;">
+        <h3>🆕 Unknown Words</h3>
+        <p style="opacity:0.7;font-size:0.9em;margin-top:4px;">Words you haven't seen or marked as "Don't know"</p>
+        <p style="margin-top:8px;"><strong id="eng-unknown-count"></strong></p>
+      </div>
+      <div class="flashcard-container">
+        <div class="flashcard" id="eng-unknown-flashcard" onclick="flipEngUnknown()">
+          <div class="flashcard-face">
+            <span class="flashcard-unit" id="eng-uk-unit"></span>
+            <div class="flashcard-word" id="eng-uk-word" style="direction:ltr;text-align:center;"></div>
+            <div style="font-size:0.9em; opacity:0.5; margin-top:8px;">Click to flip</div>
+          </div>
+          <div class="flashcard-face flashcard-back">
+            <span class="flashcard-unit" id="eng-uk-unit2"></span>
+            <div class="flashcard-word" id="eng-uk-word2" style="direction:ltr;text-align:center;"></div>
+            <div class="flashcard-def" id="eng-uk-def" style="direction:ltr;text-align:center;font-size:1.1em;"></div>
+            <div class="flashcard-example" id="eng-uk-heb" style="color:var(--accent);font-weight:bold;margin-bottom:8px;"></div>
+            <div class="flashcard-example" id="eng-uk-example" style="direction:ltr;text-align:center;"></div>
+          </div>
+        </div>
+      </div>
+      <div class="flashcard-rating" id="eng-uk-rating" style="display:none;">
+        <button class="btn btn-error btn-small" onclick="rateEngUnknown(0)">❌ Still don't know</button>
+        <button class="btn btn-success btn-small" onclick="rateEngUnknown(2)">✅ Now I know it!</button>
+      </div>
+      <div class="flashcard-nav">
+        <button class="btn btn-secondary" onclick="prevEngUnknown()">← Previous</button>
+        <button class="btn btn-primary" onclick="nextEngUnknown()">Next →</button>
+      </div>
+      <div class="flashcard-progress" id="eng-uk-progress"></div>
+    </div>
+
+    <!-- English Quiz Mode -->
+    <div id="eng-mode-quiz" style="display:none;">
+      <div class="card">
+        <div class="quiz-score" id="eng-quiz-score"></div>
+        <div class="quiz-word" id="eng-quiz-word" style="direction:ltr;text-align:center;"></div>
+        <div class="quiz-options" id="eng-quiz-options" style="direction:ltr;"></div>
+        <div class="quiz-feedback" id="eng-quiz-feedback" style="display:none;"></div>
+        <div class="quiz-next" id="eng-quiz-next" style="display:none;">
+          <button class="btn btn-primary" onclick="nextEngQuiz()">Next Question →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- English Sentence Completion Mode -->
+    <div id="eng-mode-sentences" style="display:none;">
+      <div class="card" style="text-align:center;margin-bottom:16px;">
+        <h3>📝 English Sentence Completion</h3>
+        <p style="opacity:0.7;font-size:0.9em;margin-top:4px;">Fill in the blank with the correct word - like real psychometric exams</p>
+        <div class="quiz-score" id="eng-sent-score">Score: 0/0</div>
+      </div>
+      <div class="card" id="eng-sent-container">
+        <div class="quiz-word" id="eng-sent-sentence" style="direction:ltr;text-align:left;font-size:1.3em;line-height:1.6;"></div>
+        <div class="quiz-options" id="eng-sent-options" style="direction:ltr;"></div>
+        <div class="quiz-feedback" id="eng-sent-feedback" style="display:none;"></div>
+        <div class="quiz-next" id="eng-sent-next" style="display:none;">
+          <button class="btn btn-primary" onclick="nextEngSentence()">Next Question →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- English Word Match Mode -->
+    <div id="eng-mode-match" style="display:none;">
+      <div class="card" style="text-align:center;margin-bottom:16px;">
+        <h3>🔄 English-Hebrew Word Match</h3>
+        <p style="opacity:0.7;font-size:0.9em;margin-top:4px;">Match English words with their Hebrew translations</p>
+        <div class="quiz-score" id="eng-match-score">Score: 0/0</div>
+      </div>
+      <div class="card" id="eng-match-container">
+        <div class="quiz-word" id="eng-match-word" style="direction:ltr;text-align:center;font-size:2.2em;"></div>
+        <div class="quiz-options" id="eng-match-options"></div>
+        <div class="quiz-feedback" id="eng-match-feedback" style="display:none;"></div>
+        <div class="quiz-next" id="eng-match-next" style="display:none;">
+          <button class="btn btn-primary" onclick="nextEngMatch()">Next Word →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- English Spaced Repetition Mode -->
+    <div id="eng-mode-spacedRepetition" style="display:none;">
+      <div class="card" style="text-align:center;margin-bottom:16px;">
+        <h3>🔄 Spaced Repetition</h3>
+        <p style="opacity:0.7;font-size:0.9em;margin-top:4px;">Words that are due for review</p>
+        <p style="margin-top:8px;"><strong id="eng-spaced-count"></strong></p>
+      </div>
+      <div class="flashcard-container">
+        <div class="flashcard" id="eng-spaced-flashcard" onclick="flipEngSpaced()">
+          <div class="flashcard-face">
+            <span class="flashcard-unit" id="eng-sp-unit"></span>
+            <div class="flashcard-word" id="eng-sp-word" style="direction:ltr;text-align:center;"></div>
+            <div style="font-size:0.9em; opacity:0.5; margin-top:8px;">Click to flip</div>
+          </div>
+          <div class="flashcard-face flashcard-back">
+            <span class="flashcard-unit" id="eng-sp-unit2"></span>
+            <div class="flashcard-word" id="eng-sp-word2" style="direction:ltr;text-align:center;"></div>
+            <div class="flashcard-def" id="eng-sp-def" style="direction:ltr;text-align:center;font-size:1.1em;"></div>
+            <div class="flashcard-example" id="eng-sp-heb" style="color:var(--accent);font-weight:bold;margin-bottom:8px;"></div>
+            <div class="flashcard-example" id="eng-sp-example" style="direction:ltr;text-align:center;"></div>
+            <div style="margin-top:12px;font-size:0.8em;opacity:0.6;" id="eng-sp-srs-info"></div>
+          </div>
+        </div>
+      </div>
+      <div class="flashcard-rating" id="eng-sp-rating" style="display:none;gap:4px;flex-wrap:wrap;">
+        <button class="btn btn-error btn-small" onclick="rateEngSpaced(1)" style="flex:1;min-width:80px;">1⭐ Again</button>
+        <button class="btn btn-error btn-small" onclick="rateEngSpaced(2)" style="flex:1;min-width:80px;">2⭐ Hard</button>
+        <button class="btn btn-secondary btn-small" onclick="rateEngSpaced(3)" style="flex:1;min-width:80px;">3⭐ Good</button>
+        <button class="btn btn-success btn-small" onclick="rateEngSpaced(4)" style="flex:1;min-width:80px;">4⭐ Easy</button>
+        <button class="btn btn-success btn-small" onclick="rateEngSpaced(5)" style="flex:1;min-width:80px;">5⭐ Perfect</button>
+      </div>
+      <div class="flashcard-nav">
+        <button class="btn btn-secondary" onclick="prevEngSpaced()">← Previous</button>
+        <button class="btn btn-primary" onclick="nextEngSpaced()">Next →</button>
+      </div>
+      <div class="flashcard-progress" id="eng-sp-progress"></div>
+    </div>
+
+    <!-- English Statistics Mode -->
+    <div id="eng-mode-stats" style="display:none;">
+      <div id="eng-stats-content"></div>
+      <div class="card" id="eng-progress-chart-container">
+        <h3 style="margin-bottom:16px;">📈 Daily Progress - Last 30 Days</h3>
+        <div style="display:flex;gap:16px;margin-bottom:16px;font-size:0.8em;">
+          <div style="display:flex;align-items:center;gap:4px;"><div style="width:12px;height:12px;background:#3498db;border-radius:2px;"></div>Words Reviewed</div>
+          <div style="display:flex;align-items:center;gap:4px;"><div style="width:12px;height:12px;background:#27ae60;border-radius:2px;"></div>Quiz Accuracy (%)</div>
+          <div style="display:flex;align-items:center;gap:4px;"><div style="width:12px;height:12px;background:#9b59b6;border-radius:2px;"></div>New Words</div>
+        </div>
+        <div id="eng-progress-chart" style="width:100%;height:300px;border:1px solid var(--border);border-radius:12px;background:var(--glass);padding:20px;">
+          <svg id="eng-progress-svg" width="100%" height="100%" viewBox="0 0 700 260">
+            <defs>
+              <linearGradient id="engGridGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" style="stop-color:var(--border);stop-opacity:0.3" />
+                <stop offset="100%" style="stop-color:var(--border);stop-opacity:0.1" />
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -5344,9 +5581,68 @@ function initApp() {
 
 function showApp() {
   document.getElementById('welcome').style.display = 'none';
-  document.getElementById('mainApp').style.display = 'block';
   document.getElementById('userDisplay').textContent = '👤 ' + username;
   
+  // Check if user has a preferred language stored
+  let lastLanguage = localStorage.getItem(username + '_lastLanguage');
+  if (lastLanguage && (lastLanguage === 'hebrew' || lastLanguage === 'english')) {
+    selectLanguage(lastLanguage);
+  } else {
+    // Show language selection screen
+    document.getElementById('languageSelect').style.display = 'block';
+    document.getElementById('mainApp').style.display = 'none';
+    document.getElementById('englishApp').style.display = 'none';
+    document.getElementById('backToSelectionBtn').style.display = 'none';
+  }
+  
+  // Initialize sound system
+  initAudio();
+  document.getElementById('soundToggle').textContent = soundEnabled ? '🔊' : '🔇';
+}
+
+function selectLanguage(lang) {
+  // Store the selected language
+  localStorage.setItem(username + '_lastLanguage', lang);
+  
+  // Hide language selection screen
+  document.getElementById('languageSelect').style.display = 'none';
+  
+  // Show back button
+  document.getElementById('backToSelectionBtn').style.display = 'inline-block';
+  
+  if (lang === 'hebrew') {
+    // Show Hebrew app
+    document.getElementById('mainApp').style.display = 'block';
+    document.getElementById('englishApp').style.display = 'none';
+    
+    // Initialize Hebrew app
+    initHebrewApp();
+  } else if (lang === 'english') {
+    // Show English app
+    document.getElementById('mainApp').style.display = 'none';
+    document.getElementById('englishApp').style.display = 'block';
+    
+    // Initialize English app
+    initEnglishApp();
+  }
+}
+
+function backToLanguageSelection() {
+  // Hide all apps
+  document.getElementById('mainApp').style.display = 'none';
+  document.getElementById('englishApp').style.display = 'none';
+  
+  // Show language selection screen
+  document.getElementById('languageSelect').style.display = 'block';
+  
+  // Hide back button
+  document.getElementById('backToSelectionBtn').style.display = 'none';
+  
+  // Clear last language preference so it shows selection next time
+  localStorage.removeItem(username + '_lastLanguage');
+}
+
+function initHebrewApp() {
   // Populate unit filter
   let units = [...new Set(VOCAB.map(w => w.unit))].sort((a,b) => a-b);
   let sel = document.getElementById('unitFilter');
@@ -5364,12 +5660,33 @@ function showApp() {
   setMode('flashcards');
   updateHeaderProgress();
   
-  // Initialize sound system
-  initAudio();
-  document.getElementById('soundToggle').textContent = soundEnabled ? '🔊' : '🔇';
-  
   // Update spaced repetition count
   updateSpacedRepetitionCount();
+}
+
+function initEnglishApp() {
+  // Initialize filteredEngWords with all English words
+  filteredEngWords = [...ENGLISH_VOCAB];
+  
+  // Populate unit filter for English
+  let engUnits = [...new Set(ENGLISH_VOCAB.map(w => w.unit))].sort((a,b) => a-b);
+  let sel = document.getElementById('engUnitFilter');
+  sel.innerHTML = '<option value="all">All Units (' + ENGLISH_VOCAB.length + ')</option>';
+  engUnits.forEach(u => {
+    let count = ENGLISH_VOCAB.filter(w => w.unit === u).length;
+    sel.innerHTML += '<option value="' + u + '">Unit ' + u + ' (' + count + ')</option>';
+  });
+  
+  // Restore last English unit
+  let lastEngUnit = localStorage.getItem(username + '_lastEngUnit');
+  if (lastEngUnit) sel.value = lastEngUnit;
+  
+  applyEngFilter();
+  setEngMode('flashcards');
+  updateEngHeaderProgress();
+  
+  // Update English spaced repetition count
+  updateEngSpacedRepetitionCount();
 }
 
 function updateHeaderProgress() {
@@ -5436,7 +5753,7 @@ function setMode(mode) {
   if (mode === 'spacedRepetition') showSpacedRepetitionMode();
   if (mode === 'timedQuiz') showTimedQuizSetup();
   if (mode === 'fillBlank') startFillBlank();
-  if (mode === 'english') { englishMode = true; setEnglishMode('vocab'); }
+  // English mode now handled by selectLanguage function
   if (mode === 'stats') showStats();
   if (mode === 'essay') initEssayMode();
   if (mode === 'admin') loadAdminPanel();
@@ -5445,6 +5762,55 @@ function setMode(mode) {
 }
 
 // Flashcards
+function applyEngFilter() {
+  let unit = document.getElementById('engUnitFilter').value;
+  let sort = document.getElementById('engSortFilter').value;
+  
+  // Save selected English unit
+  if (username) { localStorage.setItem(username + '_lastEngUnit', unit); saveToFirestore(); }
+  
+  filteredEngWords = unit === 'all' ? [...ENGLISH_VOCAB] : ENGLISH_VOCAB.filter(w => w.unit == unit);
+  
+  switch(sort) {
+    case 'spaced': filteredEngWords = srSortEng(filteredEngWords); break;
+    case 'random': filteredEngWords = shuffle(filteredEngWords); break;
+    case 'alpha': filteredEngWords.sort((a,b) => a.word.localeCompare(b.word, 'en')); break;
+    case 'unit': filteredEngWords.sort((a,b) => a.unit - b.unit || a.word.localeCompare(b.word, 'en')); break;
+  }
+  
+  document.getElementById('engWordCount').textContent = filteredEngWords.length + ' words';
+  engFcIndex = 0;
+  
+  // Update English spaced repetition count when filter changes
+  updateEngSpacedRepetitionCount();
+  
+  if (currentEngMode === 'flashcards') showEngFlashcard();
+  if (currentEngMode === 'unknown') initEngUnknown();
+  if (currentEngMode === 'quiz') showEngQuiz();
+  if (currentEngMode === 'sentences') showEngSentence();
+  if (currentEngMode === 'match') showEngMatch();
+  if (currentEngMode === 'spacedRepetition') showEngSpaced();
+}
+
+// Global variables for English modes
+let filteredEngWords = [];
+let engFcIndex = 0;
+let engFcFlipped = false;
+let engUnknownWords = [];
+let engUnknownIndex = 0;
+let engUnknownFlipped = false;
+let currentEngMode = '';
+
+// Additional English mode variables
+let engQuizIndex = 0;
+let engQuizScore = 0;
+let engQuizTotal = 0;
+let engSentScore = 0;
+let engSentTotal = 0;
+let engMatchIndex = 0;
+let engMatchScore = 0;
+let engMatchTotal = 0;
+
 function showFlashcard() {
   if (!filteredWords.length) return;
   if (fcIndex >= filteredWords.length) fcIndex = 0;
@@ -5485,6 +5851,584 @@ function rateCard(q) {
 
 function nextCard() { fcIndex++; showFlashcard(); }
 function prevCard() { fcIndex--; showFlashcard(); }
+
+// ============ ENGLISH APP MODES ============
+
+function setEngMode(mode) {
+  currentEngMode = mode;
+  
+  // Hide all English mode divs
+  document.querySelectorAll('#englishApp [id^="eng-mode-"]').forEach(d => d.style.display = 'none');
+  
+  // Remove active class from all English nav buttons
+  document.querySelectorAll('#englishApp .nav .btn').forEach(b => b.classList.remove('active'));
+  
+  // Show selected mode div
+  document.getElementById('eng-mode-' + mode).style.display = 'block';
+  
+  // Add active class to selected button
+  document.querySelector('#englishApp .nav .btn[data-mode="eng-' + mode + '"]')?.classList.add('active');
+  
+  // Initialize the mode
+  switch(mode) {
+    case 'flashcards': showEngFlashcard(); break;
+    case 'unknown': initEngUnknown(); break;
+    case 'quiz': startEngQuiz(); break;
+    case 'sentences': startEngSentences(); break;
+    case 'match': startEngMatch(); break;
+    case 'spacedRepetition': initEngSpaced(); break;
+    case 'stats': showEngStats(); break;
+  }
+}
+
+function updateEngHeaderProgress() {
+  let prog = JSON.parse(localStorage.getItem(sKey('eng_progress')) || '{}');
+  let known = Object.keys(prog).filter(k => prog[k].correct > 0).length;
+  // Could add English progress bar to header if needed
+}
+
+function showEngFlashcard() {
+  if (!filteredEngWords.length) return;
+  if (engFcIndex >= filteredEngWords.length) engFcIndex = 0;
+  if (engFcIndex < 0) engFcIndex = filteredEngWords.length - 1;
+  
+  let w = filteredEngWords[engFcIndex];
+  
+  // Front side
+  document.getElementById('eng-fc-unit').textContent = 'Unit ' + w.unit;
+  document.getElementById('eng-fc-word').textContent = w.word;
+  
+  // Back side
+  document.getElementById('eng-fc-unit2').textContent = 'Unit ' + w.unit;
+  document.getElementById('eng-fc-word2').textContent = w.word;
+  document.getElementById('eng-fc-def').textContent = w.def;
+  document.getElementById('eng-fc-heb').textContent = w.heb;
+  document.getElementById('eng-fc-example').textContent = w.example;
+  
+  // Reset flip state
+  document.getElementById('eng-flashcard').classList.remove('flipped');
+  document.getElementById('eng-fc-rating').style.display = 'none';
+  engFcFlipped = false;
+  
+  // Update progress
+  document.getElementById('eng-fc-progress').textContent = (engFcIndex + 1) + ' / ' + filteredEngWords.length;
+}
+
+function flipEngCard() {
+  let card = document.getElementById('eng-flashcard');
+  card.classList.toggle('flipped');
+  engFcFlipped = !engFcFlipped;
+  
+  // Show rating buttons when flipped to back
+  if (card.classList.contains('flipped')) {
+    document.getElementById('eng-fc-rating').style.display = 'flex';
+  }
+}
+
+function rateEngCard(q) {
+  let w = filteredEngWords[engFcIndex];
+  updateEngSR(w.word, q);
+  if (q === 0) {
+    addEngMistake(w);
+    playSound('incorrect');
+  } else if (q === 2) {
+    removeEngMistake(w.word);
+    playSound('correct');
+  }
+  nextEngCard();
+}
+
+function nextEngCard() { engFcIndex++; showEngFlashcard(); }
+function prevEngCard() { engFcIndex--; showEngFlashcard(); }
+
+// English Unknown Words Mode
+function initEngUnknown() {
+  updateEngUnknownWords();
+  showEngUnknown();
+}
+
+function updateEngUnknownWords() {
+  let progress = JSON.parse(localStorage.getItem(sKey('eng_progress')) || '{}');
+  let unknown = JSON.parse(localStorage.getItem(sKey('eng_unknown')) || '[]');
+  
+  // Words that are unknown or never seen
+  engUnknownWords = ENGLISH_VOCAB.filter(w => {
+    return unknown.includes(w.word) || !progress[w.word] || progress[w.word].correct === 0;
+  });
+  
+  document.getElementById('eng-unknown-count').textContent = engUnknownWords.length + ' unknown words';
+}
+
+function showEngUnknown() {
+  if (!engUnknownWords.length) {
+    document.getElementById('eng-mode-unknown').innerHTML = '<div class="card" style="text-align:center;padding:40px;"><h3>🎉 Great job!</h3><p>No unknown words remaining.</p></div>';
+    return;
+  }
+  
+  if (engUnknownIndex >= engUnknownWords.length) engUnknownIndex = 0;
+  if (engUnknownIndex < 0) engUnknownIndex = engUnknownWords.length - 1;
+  
+  let w = engUnknownWords[engUnknownIndex];
+  
+  // Front side
+  document.getElementById('eng-uk-unit').textContent = 'Unit ' + w.unit;
+  document.getElementById('eng-uk-word').textContent = w.word;
+  
+  // Back side
+  document.getElementById('eng-uk-unit2').textContent = 'Unit ' + w.unit;
+  document.getElementById('eng-uk-word2').textContent = w.word;
+  document.getElementById('eng-uk-def').textContent = w.def;
+  document.getElementById('eng-uk-heb').textContent = w.heb;
+  document.getElementById('eng-uk-example').textContent = w.example;
+  
+  // Reset flip state
+  document.getElementById('eng-unknown-flashcard').classList.remove('flipped');
+  document.getElementById('eng-uk-rating').style.display = 'none';
+  engUnknownFlipped = false;
+  
+  // Update progress
+  document.getElementById('eng-uk-progress').textContent = (engUnknownIndex + 1) + ' / ' + engUnknownWords.length;
+}
+
+function flipEngUnknown() {
+  let card = document.getElementById('eng-unknown-flashcard');
+  card.classList.toggle('flipped');
+  engUnknownFlipped = !engUnknownFlipped;
+  
+  if (card.classList.contains('flipped')) {
+    document.getElementById('eng-uk-rating').style.display = 'flex';
+  }
+}
+
+function rateEngUnknown(q) {
+  let w = engUnknownWords[engUnknownIndex];
+  updateEngSR(w.word, q);
+  if (q === 0) {
+    addEngMistake(w);
+    playSound('incorrect');
+  } else if (q === 2) {
+    removeEngMistake(w.word);
+    playSound('correct');
+  }
+  nextEngUnknown();
+}
+
+function nextEngUnknown() { engUnknownIndex++; showEngUnknown(); }
+function prevEngUnknown() { engUnknownIndex--; showEngUnknown(); }
+
+// English Spaced Repetition and Utility Functions
+
+function updateEngSR(word, quality) {
+  let srs = JSON.parse(localStorage.getItem(sKey('eng_srs')) || '{}');
+  let progress = JSON.parse(localStorage.getItem(sKey('eng_progress')) || '{}');
+  
+  if (!srs[word]) {
+    srs[word] = { n: 0, ef: 2.5, interval: 1, due: Date.now() };
+  }
+  
+  let card = srs[word];
+  
+  // SM-2 algorithm
+  if (quality >= 3) {
+    if (card.n === 0) card.interval = 1;
+    else if (card.n === 1) card.interval = 6;
+    else card.interval = Math.round(card.interval * card.ef);
+    card.n++;
+  } else {
+    card.n = 0;
+    card.interval = 1;
+  }
+  
+  card.ef = Math.max(1.3, card.ef + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02)));
+  card.due = Date.now() + card.interval * 24 * 60 * 60 * 1000;
+  
+  localStorage.setItem(sKey('eng_srs'), JSON.stringify(srs));
+  
+  // Update progress
+  if (!progress[word]) progress[word] = { correct: 0, total: 0, date: Date.now() };
+  progress[word].total++;
+  if (quality >= 3) progress[word].correct++;
+  progress[word].date = Date.now();
+  
+  localStorage.setItem(sKey('eng_progress'), JSON.stringify(progress));
+  saveToFirestore();
+}
+
+function addEngMistake(word) {
+  let mistakes = JSON.parse(localStorage.getItem(sKey('eng_mistakes')) || '[]');
+  let unknown = JSON.parse(localStorage.getItem(sKey('eng_unknown')) || '[]');
+  
+  if (!mistakes.find(m => m.word === word.word)) {
+    mistakes.push(word);
+  }
+  if (!unknown.includes(word.word)) {
+    unknown.push(word.word);
+  }
+  
+  localStorage.setItem(sKey('eng_mistakes'), JSON.stringify(mistakes));
+  localStorage.setItem(sKey('eng_unknown'), JSON.stringify(unknown));
+  saveToFirestore();
+}
+
+function removeEngMistake(word) {
+  let unknown = JSON.parse(localStorage.getItem(sKey('eng_unknown')) || '[]');
+  unknown = unknown.filter(w => w !== word);
+  localStorage.setItem(sKey('eng_unknown'), JSON.stringify(unknown));
+  saveToFirestore();
+}
+
+function srSortEng(words) {
+  let srs = JSON.parse(localStorage.getItem(sKey('eng_srs')) || '{}');
+  let now = Date.now();
+  
+  return words.sort((a, b) => {
+    let aDue = srs[a.word] ? srs[a.word].due : now;
+    let bDue = srs[b.word] ? srs[b.word].due : now;
+    return aDue - bDue;
+  });
+}
+
+function updateEngSpacedRepetitionCount() {
+  let srs = JSON.parse(localStorage.getItem(sKey('eng_srs')) || '{}');
+  let now = Date.now();
+  let due = Object.keys(srs).filter(w => srs[w].due <= now).length;
+  
+  // Update count display in header if needed
+  // document.getElementById('engSpacedRepetitionCount').textContent = due > 0 ? `📚 ${due}` : '';
+}
+
+// English Quiz Functions
+let engQuizIndex = 0;
+let engQuizScore = 0;
+let engQuizTotal = 0;
+
+function startEngQuiz() {
+  engQuizScore = 0;
+  engQuizTotal = 0;
+  engQuizIndex = 0;
+  showEngQuiz();
+}
+
+function showEngQuiz() {
+  if (engQuizIndex >= filteredEngWords.length) {
+    engQuizIndex = 0;
+  }
+  
+  let word = filteredEngWords[engQuizIndex];
+  let correct = word.def;
+  let options = [correct];
+  
+  // Get 3 wrong options
+  let otherWords = filteredEngWords.filter(w => w.word !== word.word);
+  while (options.length < 4 && otherWords.length > 0) {
+    let rand = otherWords[Math.floor(Math.random() * otherWords.length)];
+    if (!options.includes(rand.def)) {
+      options.push(rand.def);
+    }
+  }
+  
+  // Shuffle options
+  options = shuffle(options);
+  
+  document.getElementById('eng-quiz-word').textContent = word.word;
+  document.getElementById('eng-quiz-score').textContent = `Score: ${engQuizScore}/${engQuizTotal}`;
+  
+  let optionsHTML = options.map(opt => 
+    `<button class="quiz-option" onclick="selectEngQuizOption('${opt.replace(/'/g, "\\'")}', '${correct.replace(/'/g, "\\'")}')">${opt}</button>`
+  ).join('');
+  
+  document.getElementById('eng-quiz-options').innerHTML = optionsHTML;
+  document.getElementById('eng-quiz-feedback').style.display = 'none';
+  document.getElementById('eng-quiz-next').style.display = 'none';
+}
+
+function selectEngQuizOption(selected, correct) {
+  let isCorrect = selected === correct;
+  engQuizTotal++;
+  if (isCorrect) engQuizScore++;
+  
+  // Show feedback
+  let buttons = document.querySelectorAll('#eng-quiz-options .quiz-option');
+  buttons.forEach(btn => {
+    btn.disabled = true;
+    if (btn.textContent === correct) {
+      btn.classList.add('correct');
+    } else if (btn.textContent === selected && !isCorrect) {
+      btn.classList.add('wrong');
+    }
+  });
+  
+  let feedback = document.getElementById('eng-quiz-feedback');
+  feedback.style.display = 'block';
+  feedback.className = 'quiz-feedback ' + (isCorrect ? 'correct' : 'wrong');
+  feedback.innerHTML = isCorrect ? 
+    '✅ Correct! ' + filteredEngWords[engQuizIndex].heb :
+    '❌ Wrong. Correct answer: ' + correct + '<br><small>' + filteredEngWords[engQuizIndex].heb + '</small>';
+  
+  document.getElementById('eng-quiz-next').style.display = 'block';
+  
+  // Play sound
+  playSound(isCorrect ? 'correct' : 'incorrect');
+}
+
+function nextEngQuiz() {
+  engQuizIndex++;
+  showEngQuiz();
+}
+
+function startEngSentences() {
+  // Use existing English sentence functions but with new UI
+  engSentenceIndex = 0;
+  engSentScore = 0;
+  engSentTotal = 0;
+  showEngSentence();
+}
+
+function showEngSentence() {
+  if (engSentenceIndex >= ENGLISH_SENTENCES.length) {
+    engSentenceIndex = 0;
+  }
+  
+  let q = ENGLISH_SENTENCES[engSentenceIndex];
+  let options = shuffle([q.correct, ...q.wrong]);
+  
+  document.getElementById('eng-sent-sentence').innerHTML = q.sentence;
+  document.getElementById('eng-sent-score').textContent = `Score: ${engSentScore}/${engSentTotal}`;
+  
+  let optionsHTML = options.map(opt => 
+    `<button class="quiz-option" onclick="selectEngSentOption('${opt.replace(/'/g, "\\'")}', '${q.correct.replace(/'/g, "\\'")}')">${opt}</button>`
+  ).join('');
+  
+  document.getElementById('eng-sent-options').innerHTML = optionsHTML;
+  document.getElementById('eng-sent-feedback').style.display = 'none';
+  document.getElementById('eng-sent-next').style.display = 'none';
+}
+
+function selectEngSentOption(selected, correct) {
+  let isCorrect = selected === correct;
+  engSentTotal++;
+  if (isCorrect) engSentScore++;
+  
+  // Show feedback
+  let buttons = document.querySelectorAll('#eng-sent-options .quiz-option');
+  buttons.forEach(btn => {
+    btn.disabled = true;
+    if (btn.textContent === correct) {
+      btn.classList.add('correct');
+    } else if (btn.textContent === selected && !isCorrect) {
+      btn.classList.add('wrong');
+    }
+  });
+  
+  let feedback = document.getElementById('eng-sent-feedback');
+  feedback.style.display = 'block';
+  feedback.className = 'quiz-feedback ' + (isCorrect ? 'correct' : 'wrong');
+  feedback.innerHTML = isCorrect ? '✅ Correct!' : `❌ Wrong. Correct answer: ${correct}`;
+  
+  document.getElementById('eng-sent-next').style.display = 'block';
+  
+  playSound(isCorrect ? 'correct' : 'incorrect');
+}
+
+function nextEngSentence() {
+  engSentenceIndex++;
+  showEngSentence();
+}
+
+function startEngMatch() {
+  engMatchIndex = 0;
+  engMatchScore = 0;
+  engMatchTotal = 0;
+  showEngMatch();
+}
+
+function showEngMatch() {
+  if (engMatchIndex >= filteredEngWords.length) {
+    engMatchIndex = 0;
+  }
+  
+  let word = filteredEngWords[engMatchIndex];
+  let correct = word.heb;
+  let options = [correct];
+  
+  // Get 3 wrong Hebrew translations
+  let otherWords = filteredEngWords.filter(w => w.word !== word.word);
+  while (options.length < 4 && otherWords.length > 0) {
+    let rand = otherWords[Math.floor(Math.random() * otherWords.length)];
+    if (!options.includes(rand.heb)) {
+      options.push(rand.heb);
+    }
+  }
+  
+  options = shuffle(options);
+  
+  document.getElementById('eng-match-word').textContent = word.word;
+  document.getElementById('eng-match-score').textContent = `Score: ${engMatchScore}/${engMatchTotal}`;
+  
+  let optionsHTML = options.map(opt => 
+    `<button class="quiz-option" onclick="selectEngMatchOption('${opt.replace(/'/g, "\\'")}', '${correct.replace(/'/g, "\\'")}')">${opt}</button>`
+  ).join('');
+  
+  document.getElementById('eng-match-options').innerHTML = optionsHTML;
+  document.getElementById('eng-match-feedback').style.display = 'none';
+  document.getElementById('eng-match-next').style.display = 'none';
+}
+
+function selectEngMatchOption(selected, correct) {
+  let isCorrect = selected === correct;
+  engMatchTotal++;
+  if (isCorrect) engMatchScore++;
+  
+  let buttons = document.querySelectorAll('#eng-match-options .quiz-option');
+  buttons.forEach(btn => {
+    btn.disabled = true;
+    if (btn.textContent === correct) {
+      btn.classList.add('correct');
+    } else if (btn.textContent === selected && !isCorrect) {
+      btn.classList.add('wrong');
+    }
+  });
+  
+  let feedback = document.getElementById('eng-match-feedback');
+  feedback.style.display = 'block';
+  feedback.className = 'quiz-feedback ' + (isCorrect ? 'correct' : 'wrong');
+  feedback.innerHTML = isCorrect ? 
+    '✅ Correct!' :
+    `❌ Wrong. "${filteredEngWords[engMatchIndex].word}" means "${correct}"`;
+  
+  document.getElementById('eng-match-next').style.display = 'block';
+  
+  playSound(isCorrect ? 'correct' : 'incorrect');
+}
+
+function nextEngMatch() {
+  engMatchIndex++;
+  showEngMatch();
+}
+
+function initEngSpaced() {
+  updateEngSpacedWords();
+  showEngSpaced();
+}
+
+function updateEngSpacedWords() {
+  let srs = JSON.parse(localStorage.getItem(sKey('eng_srs')) || '{}');
+  let now = Date.now();
+  
+  // Get words that are due for review
+  engSpacedWords = ENGLISH_VOCAB.filter(w => {
+    return srs[w.word] && srs[w.word].due <= now;
+  });
+  
+  if (engSpacedWords.length === 0) {
+    // If no words are due, show some random words for practice
+    engSpacedWords = filteredEngWords.slice(0, 10);
+  }
+  
+  document.getElementById('eng-spaced-count').textContent = engSpacedWords.length > 0 ? 
+    `${engSpacedWords.length} words due for review` : 'No words due';
+}
+
+let engSpacedWords = [];
+let engSpacedIndex = 0;
+let engSpacedFlipped = false;
+
+function showEngSpaced() {
+  if (!engSpacedWords.length) {
+    document.getElementById('eng-mode-spacedRepetition').innerHTML = 
+      '<div class="card" style="text-align:center;padding:40px;"><h3>🎉 All caught up!</h3><p>No words due for review right now.</p></div>';
+    return;
+  }
+  
+  if (engSpacedIndex >= engSpacedWords.length) engSpacedIndex = 0;
+  if (engSpacedIndex < 0) engSpacedIndex = engSpacedWords.length - 1;
+  
+  let w = engSpacedWords[engSpacedIndex];
+  let srs = JSON.parse(localStorage.getItem(sKey('eng_srs')) || '{}');
+  let cardInfo = srs[w.word] || { n: 0, ef: 2.5, interval: 1 };
+  
+  // Front side
+  document.getElementById('eng-sp-unit').textContent = 'Unit ' + w.unit;
+  document.getElementById('eng-sp-word').textContent = w.word;
+  
+  // Back side
+  document.getElementById('eng-sp-unit2').textContent = 'Unit ' + w.unit;
+  document.getElementById('eng-sp-word2').textContent = w.word;
+  document.getElementById('eng-sp-def').textContent = w.def;
+  document.getElementById('eng-sp-heb').textContent = w.heb;
+  document.getElementById('eng-sp-example').textContent = w.example;
+  document.getElementById('eng-sp-srs-info').textContent = 
+    `Reviewed ${cardInfo.n} times • Interval: ${cardInfo.interval} days • EF: ${cardInfo.ef.toFixed(2)}`;
+  
+  // Reset flip state
+  document.getElementById('eng-spaced-flashcard').classList.remove('flipped');
+  document.getElementById('eng-sp-rating').style.display = 'none';
+  engSpacedFlipped = false;
+  
+  // Update progress
+  document.getElementById('eng-sp-progress').textContent = (engSpacedIndex + 1) + ' / ' + engSpacedWords.length;
+}
+
+function flipEngSpaced() {
+  let card = document.getElementById('eng-spaced-flashcard');
+  card.classList.toggle('flipped');
+  engSpacedFlipped = !engSpacedFlipped;
+  
+  if (card.classList.contains('flipped')) {
+    document.getElementById('eng-sp-rating').style.display = 'flex';
+  }
+}
+
+function rateEngSpaced(quality) {
+  let w = engSpacedWords[engSpacedIndex];
+  updateEngSR(w.word, quality);
+  nextEngSpaced();
+}
+
+function nextEngSpaced() { engSpacedIndex++; showEngSpaced(); }
+function prevEngSpaced() { engSpacedIndex--; showEngSpaced(); }
+
+function showEngStats() {
+  let progress = JSON.parse(localStorage.getItem(sKey('eng_progress')) || '{}');
+  let totalWords = ENGLISH_VOCAB.length;
+  let knownWords = Object.keys(progress).filter(w => progress[w].correct > 0).length;
+  let accuracy = Object.keys(progress).length > 0 ? 
+    Math.round(Object.values(progress).reduce((a, b) => a + (b.correct / b.total), 0) / Object.keys(progress).length * 100) : 0;
+
+  let statsHTML = `
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-number">${knownWords}</div>
+        <div class="stat-label">Words Learned</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">${totalWords - knownWords}</div>
+        <div class="stat-label">Words Remaining</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">${accuracy}%</div>
+        <div class="stat-label">Average Accuracy</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">${Math.round(knownWords / totalWords * 100)}%</div>
+        <div class="stat-label">Progress</div>
+      </div>
+    </div>
+  `;
+  
+  document.getElementById('eng-stats-content').innerHTML = statsHTML;
+}
+
+function updateEngSpacedRepetitionCount() {
+  let srs = JSON.parse(localStorage.getItem(sKey('eng_srs')) || '{}');
+  let now = Date.now();
+  let due = Object.keys(srs).filter(w => srs[w].due <= now).length;
+  
+  let countEl = document.getElementById('eng-spaced-count');
+  if (countEl) {
+    countEl.textContent = due > 0 ? `${due} words due for review` : 'No words due';
+  }
+}
 
 // ============ ENGLISH MODES ============
 let currentEngVocabIndex = 0;
@@ -7357,6 +8301,23 @@ document.addEventListener('keydown', e => {
       let idx = parseInt(e.key) - 1;
       if (opts[idx]) opts[idx].click();
     }
+  }
+  
+  // English Mode Keyboard Shortcuts
+  if (currentEngMode === 'flashcards') {
+    if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); flipEngCard(); }
+    if (e.key === 'ArrowLeft') nextEngCard();
+    if (e.key === 'ArrowRight') prevEngCard();
+    if (e.key === '1') rateEngCard(0);
+    if (e.key === '2') rateEngCard(1);
+    if (e.key === '3') rateEngCard(2);
+  }
+  if (currentEngMode === 'unknown') {
+    if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); flipEngUnknown(); }
+    if (e.key === 'ArrowLeft') nextEngUnknown();
+    if (e.key === 'ArrowRight') prevEngUnknown();
+    if (e.key === '1') rateEngUnknown(0);
+    if (e.key === '2') rateEngUnknown(2);
   }
 });
 
