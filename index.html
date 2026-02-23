@@ -5419,7 +5419,7 @@ async function loadFromFirestore() {
 
 function updateSpacedRepetitionCount() {
   let count = getSpacedRepetitionWords().length;
-  let el = document.getElementById('spacedRepetitionCount');
+  el = document.getElementById('spacedRepetitionCount');
   if (el) {
     el.textContent = count > 0 ? `🔄 ${count}` : '';
     el.style.display = count > 0 ? 'inline' : 'none';
@@ -5457,7 +5457,7 @@ function saveToFirestore() {
   // Debounce: wait 1.5s after last change
   clearTimeout(firestoreSaveTimeout);
   firestoreSaveTimeout = setTimeout(() => {
-    let data = {
+    data = {
       progress: getData('progress', {}),
       mistakes: getData('mistakes', []),
       essays: getData('essays', []),
@@ -5490,7 +5490,7 @@ auth.onAuthStateChanged(async (user) => {
 // Allow Enter key to submit auth form
 document.addEventListener('DOMContentLoaded', () => {
   ['authEmail','authPassword','authPasswordConfirm'].forEach(id => {
-    let el = document.getElementById(id);
+    el = document.getElementById(id);
     if (el) el.addEventListener('keydown', e => { if (e.key === 'Enter') handleAuth(); });
   });
 });
@@ -5517,7 +5517,7 @@ function addMistake(word) {
 }
 
 function removeMistake(wordStr) {
-  let m = getMistakes();
+  m = getMistakes();
   m = m.filter(x => x.word !== wordStr);
   setMistakes(m);
 }
@@ -5552,7 +5552,7 @@ function updateSR(wordStr, quality) {
 
 // Sort by spaced repetition priority
 function srSort(words) {
-  let p = getProgress();
+  p = getProgress();
   let now = Date.now();
   return [...words].sort((a, b) => {
     let pa = p[a.word], pb = p[b.word];
@@ -5648,7 +5648,7 @@ function initHebrewApp() {
   let sel = document.getElementById('unitFilter');
   sel.innerHTML = '<option value="all">הכל (' + VOCAB.length + ')</option>';
   units.forEach(u => {
-    let count = VOCAB.filter(w => w.unit === u).length;
+    count = VOCAB.filter(w => w.unit === u).length;
     sel.innerHTML += '<option value="' + u + '">יחידה ' + u + ' (' + count + ')</option>';
   });
   
@@ -5670,10 +5670,10 @@ function initEnglishApp() {
   
   // Populate unit filter for English
   let engUnits = [...new Set(ENGLISH_VOCAB.map(w => w.unit))].sort((a,b) => a-b);
-  let sel = document.getElementById('engUnitFilter');
+  sel = document.getElementById('engUnitFilter');
   sel.innerHTML = '<option value="all">All Units (' + ENGLISH_VOCAB.length + ')</option>';
   engUnits.forEach(u => {
-    let count = ENGLISH_VOCAB.filter(w => w.unit === u).length;
+    count = ENGLISH_VOCAB.filter(w => w.unit === u).length;
     sel.innerHTML += '<option value="' + u + '">Unit ' + u + ' (' + count + ')</option>';
   });
   
@@ -5735,7 +5735,7 @@ function setMode(mode) {
   document.querySelector('[data-mode="' + mode + '"]').classList.add('active');
   
   ['flashcards','unknown','quiz','analogies','review','spacedRepetition','timedQuiz','fillBlank','english','stats','essay','admin'].forEach(m => {
-    let el = document.getElementById('mode-' + m);
+    el = document.getElementById('mode-' + m);
     if (el) el.style.display = m === mode ? 'block' : 'none';
   });
   
@@ -5763,8 +5763,8 @@ function setMode(mode) {
 
 // Flashcards
 function applyEngFilter() {
-  let unit = document.getElementById('engUnitFilter').value;
-  let sort = document.getElementById('engSortFilter').value;
+  unit = document.getElementById('engUnitFilter').value;
+  sort = document.getElementById('engSortFilter').value;
   
   // Save selected English unit
   if (username) { localStorage.setItem(username + '_lastEngUnit', unit); saveToFirestore(); }
@@ -5837,7 +5837,7 @@ function flipCard() {
 }
 
 function rateCard(q) {
-  let w = filteredWords[fcIndex];
+  w = filteredWords[fcIndex];
   updateSR(w.word, q);
   if (q === 0) {
     addMistake(w);
@@ -5882,8 +5882,8 @@ function setEngMode(mode) {
 }
 
 function updateEngHeaderProgress() {
-  let prog = JSON.parse(localStorage.getItem(sKey('eng_progress')) || '{}');
-  let known = Object.keys(prog).filter(k => prog[k].correct > 0).length;
+  prog = JSON.parse(localStorage.getItem(sKey('eng_progress')) || '{}');
+  known = Object.keys(prog).filter(k => prog[k].correct > 0).length;
   // Could add English progress bar to header if needed
 }
 
@@ -5892,7 +5892,7 @@ function showEngFlashcard() {
   if (engFcIndex >= filteredEngWords.length) engFcIndex = 0;
   if (engFcIndex < 0) engFcIndex = filteredEngWords.length - 1;
   
-  let w = filteredEngWords[engFcIndex];
+  w = filteredEngWords[engFcIndex];
   
   // Front side
   document.getElementById('eng-fc-unit').textContent = 'Unit ' + w.unit;
@@ -5926,7 +5926,7 @@ function flipEngCard() {
 }
 
 function rateEngCard(q) {
-  let w = filteredEngWords[engFcIndex];
+  w = filteredEngWords[engFcIndex];
   updateEngSR(w.word, q);
   if (q === 0) {
     addEngMistake(w);
@@ -5968,7 +5968,7 @@ function showEngUnknown() {
   if (engUnknownIndex >= engUnknownWords.length) engUnknownIndex = 0;
   if (engUnknownIndex < 0) engUnknownIndex = engUnknownWords.length - 1;
   
-  let w = engUnknownWords[engUnknownIndex];
+  w = engUnknownWords[engUnknownIndex];
   
   // Front side
   document.getElementById('eng-uk-unit').textContent = 'Unit ' + w.unit;
@@ -5991,7 +5991,7 @@ function showEngUnknown() {
 }
 
 function flipEngUnknown() {
-  let card = document.getElementById('eng-unknown-flashcard');
+  card = document.getElementById('eng-unknown-flashcard');
   card.classList.toggle('flipped');
   engUnknownFlipped = !engUnknownFlipped;
   
@@ -6001,7 +6001,7 @@ function flipEngUnknown() {
 }
 
 function rateEngUnknown(q) {
-  let w = engUnknownWords[engUnknownIndex];
+  w = engUnknownWords[engUnknownIndex];
   updateEngSR(w.word, q);
   if (q === 0) {
     addEngMistake(w);
@@ -6020,13 +6020,13 @@ function prevEngUnknown() { engUnknownIndex--; showEngUnknown(); }
 
 function updateEngSR(word, quality) {
   let srs = JSON.parse(localStorage.getItem(sKey('eng_srs')) || '{}');
-  let progress = JSON.parse(localStorage.getItem(sKey('eng_progress')) || '{}');
+  progress = JSON.parse(localStorage.getItem(sKey('eng_progress')) || '{}');
   
   if (!srs[word]) {
     srs[word] = { n: 0, ef: 2.5, interval: 1, due: Date.now() };
   }
   
-  let card = srs[word];
+  card = srs[word];
   
   // SM-2 algorithm
   if (quality >= 3) {
@@ -6056,7 +6056,7 @@ function updateEngSR(word, quality) {
 
 function addEngMistake(word) {
   let mistakes = JSON.parse(localStorage.getItem(sKey('eng_mistakes')) || '[]');
-  let unknown = JSON.parse(localStorage.getItem(sKey('eng_unknown')) || '[]');
+  unknown = JSON.parse(localStorage.getItem(sKey('eng_unknown')) || '[]');
   
   if (!mistakes.find(m => m.word === word.word)) {
     mistakes.push(word);
@@ -6071,15 +6071,15 @@ function addEngMistake(word) {
 }
 
 function removeEngMistake(word) {
-  let unknown = JSON.parse(localStorage.getItem(sKey('eng_unknown')) || '[]');
+  unknown = JSON.parse(localStorage.getItem(sKey('eng_unknown')) || '[]');
   unknown = unknown.filter(w => w !== word);
   localStorage.setItem(sKey('eng_unknown'), JSON.stringify(unknown));
   saveToFirestore();
 }
 
 function srSortEng(words) {
-  let srs = JSON.parse(localStorage.getItem(sKey('eng_srs')) || '{}');
-  let now = Date.now();
+  srs = JSON.parse(localStorage.getItem(sKey('eng_srs')) || '{}');
+  now = Date.now();
   
   return words.sort((a, b) => {
     let aDue = srs[a.word] ? srs[a.word].due : now;
@@ -6089,8 +6089,8 @@ function srSortEng(words) {
 }
 
 function updateEngSpacedRepetitionCount() {
-  let srs = JSON.parse(localStorage.getItem(sKey('eng_srs')) || '{}');
-  let now = Date.now();
+  srs = JSON.parse(localStorage.getItem(sKey('eng_srs')) || '{}');
+  now = Date.now();
   let due = Object.keys(srs).filter(w => srs[w].due <= now).length;
   
   // Update count display in header if needed
@@ -6098,9 +6098,9 @@ function updateEngSpacedRepetitionCount() {
 }
 
 // English Quiz Functions
-let engQuizIndex = 0;
-let engQuizScore = 0;
-let engQuizTotal = 0;
+engQuizIndex = 0;
+engQuizScore = 0;
+engQuizTotal = 0;
 
 function startEngQuiz() {
   engQuizScore = 0;
@@ -6190,12 +6190,12 @@ function showEngSentence() {
   }
   
   let q = ENGLISH_SENTENCES[engSentenceIndex];
-  let options = shuffle([q.correct, ...q.wrong]);
+  options = shuffle([q.correct, ...q.wrong]);
   
   document.getElementById('eng-sent-sentence').innerHTML = q.sentence;
   document.getElementById('eng-sent-score').textContent = `Score: ${engSentScore}/${engSentTotal}`;
   
-  let optionsHTML = options.map(opt => 
+  optionsHTML = options.map(opt => 
     `<button class="quiz-option" onclick="selectEngSentOption('${opt.replace(/'/g, "\\'")}', '${q.correct.replace(/'/g, "\\'")}')">${opt}</button>`
   ).join('');
   
@@ -6205,12 +6205,12 @@ function showEngSentence() {
 }
 
 function selectEngSentOption(selected, correct) {
-  let isCorrect = selected === correct;
+  isCorrect = selected === correct;
   engSentTotal++;
   if (isCorrect) engSentScore++;
   
   // Show feedback
-  let buttons = document.querySelectorAll('#eng-sent-options .quiz-option');
+  buttons = document.querySelectorAll('#eng-sent-options .quiz-option');
   buttons.forEach(btn => {
     btn.disabled = true;
     if (btn.textContent === correct) {
@@ -6220,7 +6220,7 @@ function selectEngSentOption(selected, correct) {
     }
   });
   
-  let feedback = document.getElementById('eng-sent-feedback');
+  feedback = document.getElementById('eng-sent-feedback');
   feedback.style.display = 'block';
   feedback.className = 'quiz-feedback ' + (isCorrect ? 'correct' : 'wrong');
   feedback.innerHTML = isCorrect ? '✅ Correct!' : `❌ Wrong. Correct answer: ${correct}`;
@@ -6247,14 +6247,14 @@ function showEngMatch() {
     engMatchIndex = 0;
   }
   
-  let word = filteredEngWords[engMatchIndex];
-  let correct = word.heb;
-  let options = [correct];
+  word = filteredEngWords[engMatchIndex];
+  correct = word.heb;
+  options = [correct];
   
   // Get 3 wrong Hebrew translations
-  let otherWords = filteredEngWords.filter(w => w.word !== word.word);
+  otherWords = filteredEngWords.filter(w => w.word !== word.word);
   while (options.length < 4 && otherWords.length > 0) {
-    let rand = otherWords[Math.floor(Math.random() * otherWords.length)];
+    rand = otherWords[Math.floor(Math.random() * otherWords.length)];
     if (!options.includes(rand.heb)) {
       options.push(rand.heb);
     }
@@ -6265,7 +6265,7 @@ function showEngMatch() {
   document.getElementById('eng-match-word').textContent = word.word;
   document.getElementById('eng-match-score').textContent = `Score: ${engMatchScore}/${engMatchTotal}`;
   
-  let optionsHTML = options.map(opt => 
+  optionsHTML = options.map(opt => 
     `<button class="quiz-option" onclick="selectEngMatchOption('${opt.replace(/'/g, "\\'")}', '${correct.replace(/'/g, "\\'")}')">${opt}</button>`
   ).join('');
   
@@ -6275,11 +6275,11 @@ function showEngMatch() {
 }
 
 function selectEngMatchOption(selected, correct) {
-  let isCorrect = selected === correct;
+  isCorrect = selected === correct;
   engMatchTotal++;
   if (isCorrect) engMatchScore++;
   
-  let buttons = document.querySelectorAll('#eng-match-options .quiz-option');
+  buttons = document.querySelectorAll('#eng-match-options .quiz-option');
   buttons.forEach(btn => {
     btn.disabled = true;
     if (btn.textContent === correct) {
@@ -6289,7 +6289,7 @@ function selectEngMatchOption(selected, correct) {
     }
   });
   
-  let feedback = document.getElementById('eng-match-feedback');
+  feedback = document.getElementById('eng-match-feedback');
   feedback.style.display = 'block';
   feedback.className = 'quiz-feedback ' + (isCorrect ? 'correct' : 'wrong');
   feedback.innerHTML = isCorrect ? 
@@ -6312,8 +6312,8 @@ function initEngSpaced() {
 }
 
 function updateEngSpacedWords() {
-  let srs = JSON.parse(localStorage.getItem(sKey('eng_srs')) || '{}');
-  let now = Date.now();
+  srs = JSON.parse(localStorage.getItem(sKey('eng_srs')) || '{}');
+  now = Date.now();
   
   // Get words that are due for review
   engSpacedWords = ENGLISH_VOCAB.filter(w => {
@@ -6343,8 +6343,8 @@ function showEngSpaced() {
   if (engSpacedIndex >= engSpacedWords.length) engSpacedIndex = 0;
   if (engSpacedIndex < 0) engSpacedIndex = engSpacedWords.length - 1;
   
-  let w = engSpacedWords[engSpacedIndex];
-  let srs = JSON.parse(localStorage.getItem(sKey('eng_srs')) || '{}');
+  w = engSpacedWords[engSpacedIndex];
+  srs = JSON.parse(localStorage.getItem(sKey('eng_srs')) || '{}');
   let cardInfo = srs[w.word] || { n: 0, ef: 2.5, interval: 1 };
   
   // Front side
@@ -6370,7 +6370,7 @@ function showEngSpaced() {
 }
 
 function flipEngSpaced() {
-  let card = document.getElementById('eng-spaced-flashcard');
+  card = document.getElementById('eng-spaced-flashcard');
   card.classList.toggle('flipped');
   engSpacedFlipped = !engSpacedFlipped;
   
@@ -6380,7 +6380,7 @@ function flipEngSpaced() {
 }
 
 function rateEngSpaced(quality) {
-  let w = engSpacedWords[engSpacedIndex];
+  w = engSpacedWords[engSpacedIndex];
   updateEngSR(w.word, quality);
   nextEngSpaced();
 }
@@ -6389,7 +6389,7 @@ function nextEngSpaced() { engSpacedIndex++; showEngSpaced(); }
 function prevEngSpaced() { engSpacedIndex--; showEngSpaced(); }
 
 function showEngStats() {
-  let progress = JSON.parse(localStorage.getItem(sKey('eng_progress')) || '{}');
+  progress = JSON.parse(localStorage.getItem(sKey('eng_progress')) || '{}');
   let totalWords = ENGLISH_VOCAB.length;
   let knownWords = Object.keys(progress).filter(w => progress[w].correct > 0).length;
   let accuracy = Object.keys(progress).length > 0 ? 
@@ -6420,9 +6420,9 @@ function showEngStats() {
 }
 
 function updateEngSpacedRepetitionCount() {
-  let srs = JSON.parse(localStorage.getItem(sKey('eng_srs')) || '{}');
-  let now = Date.now();
-  let due = Object.keys(srs).filter(w => srs[w].due <= now).length;
+  srs = JSON.parse(localStorage.getItem(sKey('eng_srs')) || '{}');
+  now = Date.now();
+  due = Object.keys(srs).filter(w => srs[w].due <= now).length;
   
   let countEl = document.getElementById('eng-spaced-count');
   if (countEl) {
@@ -6435,8 +6435,8 @@ let currentEngVocabIndex = 0;
 let englishVocabWords = [];
 let engSentenceIndex = 0;
 let engSentenceScore = { correct: 0, total: 0 };
-let engMatchIndex = 0;
-let engMatchScore = { correct: 0, total: 0 };
+engMatchIndex = 0;
+engMatchScore = { correct: 0, total: 0 };
 
 function setEnglishMode(subMode) {
   currentEnglishSubMode = subMode;
@@ -6475,7 +6475,7 @@ function showEngVocabCard() {
   if (currentEngVocabIndex >= englishVocabWords.length) currentEngVocabIndex = 0;
   if (currentEngVocabIndex < 0) currentEngVocabIndex = englishVocabWords.length - 1;
   
-  let word = englishVocabWords[currentEngVocabIndex];
+  word = englishVocabWords[currentEngVocabIndex];
   document.getElementById('eng-fc-unit').textContent = 'Unit ' + word.unit;
   document.getElementById('eng-fc-unit2').textContent = 'Unit ' + word.unit;
   document.getElementById('eng-fc-word').textContent = word.word;
@@ -6498,8 +6498,8 @@ function flipEngCard() {
 
 function rateEngCard(rating) {
   // Store progress in separate English progress tracking
-  let progress = getData(username + '_eng_progress', {});
-  let word = englishVocabWords[currentEngVocabIndex];
+  progress = getData(username + '_eng_progress', {});
+  word = englishVocabWords[currentEngVocabIndex];
   progress[word.word] = { rating: rating, date: Date.now() };
   setData(username + '_eng_progress', progress);
   syncEngProgress();
@@ -6522,13 +6522,13 @@ function nextEngSentence() {
     engSentenceIndex = 0;
   }
   
-  let q = ENGLISH_SENTENCES[engSentenceIndex];
+  q = ENGLISH_SENTENCES[engSentenceIndex];
   let sentence = q.sentence.replace('______', '_____');
   
   document.getElementById('eng-sent-sentence').innerHTML = sentence;
   
   // Shuffle options
-  let options = [...q.options].sort(() => Math.random() - 0.5);
+  options = [...q.options].sort(() => Math.random() - 0.5);
   let optionsHtml = options.map(opt => 
     '<button class="quiz-option" onclick="checkEngSentence(\'' + opt + '\', \'' + q.answer + '\')" style="text-align:left;">' + opt + '</button>'
   ).join('');
@@ -6541,7 +6541,7 @@ function nextEngSentence() {
 
 function checkEngSentence(selected, correct) {
   engSentenceScore.total++;
-  let isCorrect = selected === correct;
+  isCorrect = selected === correct;
   if (isCorrect) engSentenceScore.correct++;
   
   // Disable all options
@@ -6552,7 +6552,7 @@ function checkEngSentence(selected, correct) {
   });
   
   // Show feedback
-  let feedback = document.getElementById('eng-sent-feedback');
+  feedback = document.getElementById('eng-sent-feedback');
   feedback.className = 'quiz-feedback ' + (isCorrect ? 'correct' : 'wrong');
   feedback.innerHTML = isCorrect ? 
     '<strong>✅ Correct!</strong>' :
@@ -6564,7 +6564,7 @@ function checkEngSentence(selected, correct) {
   playSound(isCorrect ? 'success' : 'error');
   
   // Store English sentence progress
-  let progress = getData(username + '_eng_sentences_progress', {});
+  progress = getData(username + '_eng_sentences_progress', {});
   progress[ENGLISH_SENTENCES[engSentenceIndex-1].sentence] = { correct: isCorrect, date: Date.now() };
   setData(username + '_eng_sentences_progress', progress);
 }
@@ -6581,12 +6581,12 @@ function nextEngMatch() {
     engMatchIndex = 0;
   }
   
-  let word = ENGLISH_VOCAB[engMatchIndex];
+  word = ENGLISH_VOCAB[engMatchIndex];
   document.getElementById('eng-match-word').textContent = word.word;
   
   // Create options: correct Hebrew translation + 3 wrong ones
-  let options = [word.heb];
-  let otherWords = ENGLISH_VOCAB.filter(w => w.word !== word.word);
+  options = [word.heb];
+  otherWords = ENGLISH_VOCAB.filter(w => w.word !== word.word);
   while (options.length < 4) {
     let randomWord = otherWords[Math.floor(Math.random() * otherWords.length)];
     if (!options.includes(randomWord.heb)) {
@@ -6597,7 +6597,7 @@ function nextEngMatch() {
   // Shuffle options
   options.sort(() => Math.random() - 0.5);
   
-  let optionsHtml = options.map(opt => 
+  optionsHtml = options.map(opt => 
     '<button class="quiz-option" onclick="checkEngMatch(\'' + opt.replace(/'/g, '\\\'') + '\', \'' + word.heb.replace(/'/g, '\\\'') + '\')">' + opt + '</button>'
   ).join('');
   
@@ -6609,7 +6609,7 @@ function nextEngMatch() {
 
 function checkEngMatch(selected, correct) {
   engMatchScore.total++;
-  let isCorrect = selected === correct;
+  isCorrect = selected === correct;
   if (isCorrect) engMatchScore.correct++;
   
   // Disable all options
@@ -6620,7 +6620,7 @@ function checkEngMatch(selected, correct) {
   });
   
   // Show feedback
-  let feedback = document.getElementById('eng-match-feedback');
+  feedback = document.getElementById('eng-match-feedback');
   feedback.className = 'quiz-feedback ' + (isCorrect ? 'correct' : 'wrong');
   feedback.innerHTML = isCorrect ? 
     '<strong>✅ Correct!</strong>' :
@@ -6632,7 +6632,7 @@ function checkEngMatch(selected, correct) {
   playSound(isCorrect ? 'success' : 'error');
   
   // Store progress
-  let progress = getData(username + '_eng_match_progress', {});
+  progress = getData(username + '_eng_match_progress', {});
   progress[ENGLISH_VOCAB[engMatchIndex-1].word] = { correct: isCorrect, date: Date.now() };
   setData(username + '_eng_match_progress', progress);
 }
@@ -6670,7 +6670,7 @@ function nextQuiz() {
   
   // Pick 3 wrong answers from different words
   let wrongs = shuffle(VOCAB.filter(w => w.word !== quizCurrent.word)).slice(0, 3);
-  let options = shuffle([quizCurrent, ...wrongs]);
+  options = shuffle([quizCurrent, ...wrongs]);
   
   document.getElementById('quiz-word').textContent = quizCurrent.word;
   document.getElementById('quiz-score').textContent = '✅ ' + quizCorrect + ' / ' + quizTotal;
@@ -6690,7 +6690,7 @@ function nextQuiz() {
 
 function answerQuiz(selected, btn, optDiv) {
   quizTotal++;
-  let correct = selected.word === quizCurrent.word;
+  correct = selected.word === quizCurrent.word;
   
   // Disable all options
   optDiv.querySelectorAll('.quiz-option').forEach(b => {
@@ -6729,7 +6729,7 @@ function answerQuiz(selected, btn, optDiv) {
 
 // Review mistakes
 function showReview() {
-  let mistakes = getMistakes();
+  mistakes = getMistakes();
   let div = document.getElementById('review-content');
   
   if (!mistakes.length) {
@@ -6749,7 +6749,7 @@ function showReview() {
 }
 
 function removeMistakeAndRefresh(btn) {
-  let word = decodeURIComponent(btn.dataset.word);
+  word = decodeURIComponent(btn.dataset.word);
   removeMistake(word);
   showReview();
 }
@@ -6759,13 +6759,13 @@ let unknownWords = [];
 let ukIndex = 0;
 
 function getUnknownWords() {
-  let p = getProgress();
-  let mistakes = getMistakes();
+  p = getProgress();
+  mistakes = getMistakes();
   let mistakeWords = new Set(mistakes.map(w => w.word));
   
   // Words that: never seen, OR marked wrong and not yet mastered
   return filteredWords.filter(w => {
-    let wp = p[w.word];
+    wp = p[w.word];
     if (!wp) return true; // never seen
     if (mistakeWords.has(w.word)) return true; // in mistakes list
     if (wp.wrong > wp.correct) return true; // more wrong than right
@@ -6791,7 +6791,7 @@ function showUnknownCard() {
   if (ukIndex >= unknownWords.length) ukIndex = 0;
   if (ukIndex < 0) ukIndex = unknownWords.length - 1;
   
-  let w = unknownWords[ukIndex];
+  w = unknownWords[ukIndex];
   
   // Reset card HTML if it was emptied by "no words" state
   let fc = document.getElementById('unknown-flashcard');
@@ -6821,7 +6821,7 @@ function flipUnknown() {
 }
 
 function rateUnknown(q) {
-  let w = unknownWords[ukIndex];
+  w = unknownWords[ukIndex];
   updateSR(w.word, q);
   if (q === 0) {
     addMistake(w);
@@ -6841,14 +6841,14 @@ function prevUnknown() { ukIndex--; showUnknownCard(); }
 
 // Stats
 function showStats() {
-  let p = getProgress();
+  p = getProgress();
   let total = VOCAB.length;
   let seen = Object.keys(p).length;
   let mastered = Object.values(p).filter(x => x.correct >= 3 && x.interval >= 5).length;
-  let mistakes = getMistakes().length;
+  mistakes = getMistakes().length;
   let totalCorrect = Object.values(p).reduce((s, x) => s + x.correct, 0);
   let totalWrong = Object.values(p).reduce((s, x) => s + x.wrong, 0);
-  let accuracy = totalCorrect + totalWrong > 0 ? Math.round(totalCorrect / (totalCorrect + totalWrong) * 100) : 0;
+  accuracy = totalCorrect + totalWrong > 0 ? Math.round(totalCorrect / (totalCorrect + totalWrong) * 100) : 0;
   
   let html = '<div class="stats-grid">';
   html += statCard(total, 'סה"כ מילים');
@@ -6869,12 +6869,12 @@ function showStats() {
   html += '<span style="font-size:0.85em">' + Math.round(mastered/total*100) + '% נרכשו</span></div>';
   
   // Per-unit stats
-  let units = [...new Set(VOCAB.map(w => w.unit))].sort((a,b) => a-b);
+  units = [...new Set(VOCAB.map(w => w.unit))].sort((a,b) => a-b);
   html += '<div class="card unit-stats"><h3>לפי יחידה</h3>';
   units.forEach(u => {
     let uWords = VOCAB.filter(w => w.unit === u);
     let uSeen = uWords.filter(w => p[w.word]).length;
-    let pct = Math.round(uSeen / uWords.length * 100);
+    pct = Math.round(uSeen / uWords.length * 100);
     html += '<div class="unit-stat-row"><span>יחידה ' + u + ' (' + uWords.length + ')</span>';
     html += '<div style="flex:1;margin:0 12px"><div class="progress-bar"><div class="progress-fill" style="width:' + pct + '%"></div></div></div>';
     html += '<span>' + pct + '%</span></div>';
@@ -6891,7 +6891,7 @@ function showStats() {
 }
 
 function drawProgressChart() {
-  let dailyStats = getData('dailyStats', []);
+  dailyStats = getData('dailyStats', []);
   let svg = document.getElementById('progress-svg');
   if (!svg) return;
   
@@ -6957,7 +6957,7 @@ function drawProgressChart() {
     
     data.forEach((value, i) => {
       let x = i * xStep;
-      let y = height - (value / maxY) * height;
+      y = height - (value / maxY) * height;
       if (i === 0) {
         d += `M ${x} ${y}`;
       } else {
@@ -6993,8 +6993,8 @@ function drawProgressChart() {
   // X-axis dates (show every 5th day)
   days.forEach((day, i) => {
     if (i % 5 === 0) {
-      let date = new Date(day.date);
-      let text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      date = new Date(day.date);
+      text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
       text.setAttribute('x', i * xStep);
       text.setAttribute('y', height + 15);
       text.setAttribute('font-size', '9');
@@ -7039,10 +7039,10 @@ function showSpacedRepetitionMode() {
 }
 
 function getSpacedRepetitionWords() {
-  let p = getProgress();
-  let now = Date.now();
+  p = getProgress();
+  now = Date.now();
   return VOCAB.filter(w => {
-    let wp = p[w.word];
+    wp = p[w.word];
     return wp && wp.nextReview && wp.nextReview <= now;
   }).sort((a, b) => {
     let aData = p[a.word];
@@ -7062,12 +7062,12 @@ function showSpacedCard() {
   if (spIndex >= spacedWords.length) spIndex = 0;
   if (spIndex < 0) spIndex = spacedWords.length - 1;
   
-  let w = spacedWords[spIndex];
-  let p = getProgress();
-  let wp = p[w.word];
+  w = spacedWords[spIndex];
+  p = getProgress();
+  wp = p[w.word];
   
   // Reset card HTML if it was emptied
-  let fc = document.getElementById('spaced-flashcard');
+  fc = document.getElementById('spaced-flashcard');
   if (!document.getElementById('sp-word')) {
     fc.innerHTML = 
       '<div class="flashcard-face"><span class="flashcard-unit" id="sp-unit"></span><div class="flashcard-word" id="sp-word"></div><div style="font-size:0.9em;opacity:0.5;margin-top:8px;">לחץ להפוך</div></div>' +
@@ -7102,7 +7102,7 @@ function flipSpaced() {
 }
 
 function rateSpaced(quality) {
-  let w = spacedWords[spIndex];
+  w = spacedWords[spIndex];
   updateSRAdvanced(w.word, quality);
   
   if (quality <= 2) {
@@ -7122,9 +7122,9 @@ function rateSpaced(quality) {
 
 function updateSRAdvanced(wordStr, quality) {
   // SM-2 style algorithm with 5 levels
-  let p = getProgress();
-  let isNewWord = !p[wordStr];
-  let wp = p[wordStr] || { correct:0, wrong:0, lastSeen:0, interval:1, nextReview:0, easeFactor:2.5, repetitions:0 };
+  p = getProgress();
+  isNewWord = !p[wordStr];
+  wp = p[wordStr] || { correct:0, wrong:0, lastSeen:0, interval:1, nextReview:0, easeFactor:2.5, repetitions:0 };
   wp.lastSeen = Date.now();
   
   if (quality >= 3) {
@@ -7205,21 +7205,21 @@ function nextTimedQuiz() {
   
   if (filteredWords.length < 4) return;
   
-  let idx = Math.floor(Math.random() * filteredWords.length);
+  idx = Math.floor(Math.random() * filteredWords.length);
   timedQuizCurrent = filteredWords[idx];
   
-  let wrongs = shuffle(VOCAB.filter(w => w.word !== timedQuizCurrent.word)).slice(0, 3);
-  let options = shuffle([timedQuizCurrent, ...wrongs]);
+  wrongs = shuffle(VOCAB.filter(w => w.word !== timedQuizCurrent.word)).slice(0, 3);
+  options = shuffle([timedQuizCurrent, ...wrongs]);
   
   document.getElementById('timed-quiz-score').textContent = '✅ ' + timedQuizAnswers.filter(a => a.correct).length + ' / ' + (timedQuizIndex + 1);
   document.getElementById('timed-quiz-word').textContent = timedQuizCurrent.word;
   document.getElementById('timed-quiz-feedback').style.display = 'none';
   document.getElementById('timed-quiz-next').style.display = 'none';
   
-  let optDiv = document.getElementById('timed-quiz-options');
+  optDiv = document.getElementById('timed-quiz-options');
   optDiv.innerHTML = '';
   options.forEach(o => {
-    let btn = document.createElement('button');
+    btn = document.createElement('button');
     btn.className = 'quiz-option';
     btn.textContent = o.definition.substring(0, 80);
     btn.onclick = () => answerTimedQuiz(o, btn, optDiv);
@@ -7228,7 +7228,7 @@ function nextTimedQuiz() {
 }
 
 function answerTimedQuiz(selected, btn, optDiv) {
-  let correct = selected.word === timedQuizCurrent.word;
+  correct = selected.word === timedQuizCurrent.word;
   let answerTime = Date.now();
   
   timedQuizAnswers.push({
@@ -7254,7 +7254,7 @@ function answerTimedQuiz(selected, btn, optDiv) {
     playSound('incorrect');
   }
   
-  let fb = document.getElementById('timed-quiz-feedback');
+  fb = document.getElementById('timed-quiz-feedback');
   fb.style.display = 'block';
   fb.className = 'quiz-feedback ' + (correct ? 'correct' : 'wrong');
   fb.innerHTML = (correct ? '✅ נכון!' : '❌ לא נכון') + '<br><strong>' + timedQuizCurrent.word + '</strong>: ' + timedQuizCurrent.definition;
@@ -7278,16 +7278,16 @@ function finishTimedQuiz() {
   
   document.getElementById('timed-final-score').textContent = correctCount;
   
-  let statsHTML = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">';
+  statsHTML = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">';
   statsHTML += '<div style="text-align:center;padding:12px;background:var(--glass);border-radius:10px;"><div style="font-size:1.4em;font-weight:bold;color:var(--accent);">' + Math.round(correctCount/20*100) + '%</div><div style="font-size:0.8em;opacity:0.7;">דיוק</div></div>';
   statsHTML += '<div style="text-align:center;padding:12px;background:var(--glass);border-radius:10px;"><div style="font-size:1.4em;font-weight:bold;color:var(--accent2);">' + avgTime.toFixed(1) + 's</div><div style="font-size:0.8em;opacity:0.7;">ממוצע לשאלה</div></div>';
   statsHTML += '</div>';
   document.getElementById('timed-quiz-stats').innerHTML = statsHTML;
   
   // Save results
-  let dailyStats = getData('dailyStats', []);
-  let today = new Date().toISOString().split('T')[0];
-  let todayStats = dailyStats.find(d => d.date === today);
+  dailyStats = getData('dailyStats', []);
+  today = new Date().toISOString().split('T')[0];
+  todayStats = dailyStats.find(d => d.date === today);
   if (!todayStats) {
     todayStats = { date: today, wordsReviewed: 0, quizScore: 0, newWords: 0, timedQuizzes: [] };
     dailyStats.push(todayStats);
@@ -7319,24 +7319,24 @@ function nextFillBlank() {
   fillCurrent = wordsWithExamples[Math.floor(Math.random() * wordsWithExamples.length)];
   
   // Create sentence with blank
-  let sentence = fillCurrent.example;
+  sentence = fillCurrent.example;
   sentence = sentence.replace(new RegExp(fillCurrent.word, 'g'), '<strong style="color:var(--accent);background:var(--glass);padding:4px 12px;border-radius:6px;border:2px dashed var(--accent);">______</strong>');
   
   document.getElementById('fill-sentence').innerHTML = sentence;
   
   // Get 3 wrong answers from same unit
   let sameUnitWords = VOCAB.filter(w => w.unit === fillCurrent.unit && w.word !== fillCurrent.word);
-  let wrongs = shuffle(sameUnitWords).slice(0, 3);
-  let options = shuffle([fillCurrent, ...wrongs]);
+  wrongs = shuffle(sameUnitWords).slice(0, 3);
+  options = shuffle([fillCurrent, ...wrongs]);
   
   document.getElementById('fill-score').textContent = '✅ ' + fillCorrect + ' / ' + fillTotal;
   document.getElementById('fill-feedback').style.display = 'none';
   document.getElementById('fill-next').style.display = 'none';
   
-  let optDiv = document.getElementById('fill-options');
+  optDiv = document.getElementById('fill-options');
   optDiv.innerHTML = '';
   options.forEach(o => {
-    let btn = document.createElement('button');
+    btn = document.createElement('button');
     btn.className = 'quiz-option';
     btn.textContent = o.word;
     btn.onclick = () => answerFillBlank(o, btn, optDiv);
@@ -7346,7 +7346,7 @@ function nextFillBlank() {
 
 function answerFillBlank(selected, btn, optDiv) {
   fillTotal++;
-  let correct = selected.word === fillCurrent.word;
+  correct = selected.word === fillCurrent.word;
   
   // Disable all options
   optDiv.querySelectorAll('.quiz-option').forEach(b => {
@@ -7368,11 +7368,11 @@ function answerFillBlank(selected, btn, optDiv) {
   document.getElementById('fill-score').textContent = '✅ ' + fillCorrect + ' / ' + fillTotal;
   
   // Update sentence to show correct answer
-  let sentence = fillCurrent.example;
+  sentence = fillCurrent.example;
   sentence = sentence.replace(new RegExp(fillCurrent.word, 'g'), '<strong style="color:var(--success);background:rgba(0,184,148,0.1);padding:4px 12px;border-radius:6px;border:2px solid var(--success);">' + fillCurrent.word + '</strong>');
   document.getElementById('fill-sentence').innerHTML = sentence;
   
-  let fb = document.getElementById('fill-feedback');
+  fb = document.getElementById('fill-feedback');
   fb.style.display = 'block';
   fb.className = 'quiz-feedback ' + (correct ? 'correct' : 'wrong');
   fb.innerHTML = (correct ? '✅ נכון!' : '❌ לא נכון') + '<br><strong>' + fillCurrent.word + '</strong>: ' + fillCurrent.definition;
@@ -8159,9 +8159,9 @@ function getFilteredAnalogies() {
 let analogyLastIdx = -1;
 
 function getWordDef(word) {
-  let w = VOCAB.find(v => v.word === word);
+  w = VOCAB.find(v => v.word === word);
   if (w && w.definition) {
-    let d = w.definition.replace(/["\u05B0-\u05BD\u05BF\u05C1\u05C2\u05C4\u05C5\u05C7]/g,'').trim();
+    d = w.definition.replace(/["\u05B0-\u05BD\u05BF\u05C1\u05C2\u05C4\u05C5\u05C7]/g,'').trim();
     if (d.length > 60) d = d.substring(0, 57) + '...';
     return d;
   }
@@ -8194,10 +8194,10 @@ function buildWrongPairs(analogy) {
 }
 
 function nextAnalogy() {
-  let pool = getFilteredAnalogies();
+  pool = getFilteredAnalogies();
   if (!pool.length) return;
 
-  let idx = Math.floor(Math.random() * pool.length);
+  idx = Math.floor(Math.random() * pool.length);
   if (pool.length > 1) { while (idx === analogyLastIdx) idx = Math.floor(Math.random() * pool.length); }
   analogyLastIdx = idx;
   analogyCurrent = pool[idx];
@@ -8212,14 +8212,14 @@ function nextAnalogy() {
   document.getElementById('analogy-next').style.display = 'none';
 
   let correctPair = { c: analogyCurrent.c, d: analogyCurrent.d };
-  let wrongPairs = buildWrongPairs(analogyCurrent);
+  wrongPairs = buildWrongPairs(analogyCurrent);
   let allOptions = shuffle([correctPair, ...wrongPairs]);
 
-  let optDiv = document.getElementById('analogy-options');
+  optDiv = document.getElementById('analogy-options');
   optDiv.innerHTML = '';
   let labels = ['(1)', '(2)', '(3)', '(4)'];
   allOptions.forEach((pair, i) => {
-    let btn = document.createElement('button');
+    btn = document.createElement('button');
     btn.className = 'analogy-option';
     btn.innerHTML = '<span style="opacity:0.5;font-size:0.85em">' + labels[i] + '</span> <strong>' + pair.c + ' : ' + pair.d + '</strong>';
     btn.dataset.c = pair.c;
@@ -8257,7 +8257,7 @@ function answerAnalogy(correct, btn, optDiv, correctPair) {
   let relName = RELATION_NAMES[analogyCurrent.type] || analogyCurrent.type;
   document.getElementById('analogy-relation').textContent = '🔗 סוג הקשר: ' + relName;
 
-  let fb = document.getElementById('analogy-feedback');
+  fb = document.getElementById('analogy-feedback');
   fb.style.display = 'block';
   fb.className = 'analogy-feedback ' + (correct ? 'correct' : 'wrong');
   fb.innerHTML = (correct ? '✅ נכון!' : '❌ התשובה הנכונה: ' + analogyCurrent.c + ' : ' + analogyCurrent.d) +
@@ -8267,7 +8267,7 @@ function answerAnalogy(correct, btn, optDiv, correctPair) {
 
   // Save analogy stats
   let key = sKey('analogy_stats');
-  let stats = JSON.parse(localStorage.getItem(key) || '{"correct":0,"total":0}');
+  stats = JSON.parse(localStorage.getItem(key) || '{"correct":0,"total":0}');
   if (correct) stats.correct++;
   stats.total++;
   localStorage.setItem(key, JSON.stringify(stats));
@@ -8298,7 +8298,7 @@ document.addEventListener('keydown', e => {
     }
     if (['1','2','3','4'].includes(e.key)) {
       let opts = document.querySelectorAll('.analogy-option:not(.disabled)');
-      let idx = parseInt(e.key) - 1;
+      idx = parseInt(e.key) - 1;
       if (opts[idx]) opts[idx].click();
     }
   }
@@ -8376,8 +8376,8 @@ function newEssayPrompt() {
 }
 
 function updateEssayWordCount() {
-  let text = document.getElementById('essay-textarea').value.trim();
-  let count = text ? text.split(/\s+/).length : 0;
+  text = document.getElementById('essay-textarea').value.trim();
+  count = text ? text.split(/\s+/).length : 0;
   document.getElementById('essay-wc').textContent = count;
 }
 
@@ -8388,7 +8388,7 @@ function clearEssay() {
 }
 
 function submitEssay() {
-  let text = document.getElementById('essay-textarea').value.trim();
+  text = document.getElementById('essay-textarea').value.trim();
   if (!text) { alert('כתוב משהו לפני הגשה!'); return; }
   
   document.getElementById('essay-results').style.display = 'block';
@@ -8551,8 +8551,8 @@ function gradeEssayNITE(text) {
   langScore = Math.min(6, Math.max(1, Math.round(langScore * 2) / 2));
   
   // === FEEDBACK ===
-  let feedback = '<b>📊 סיכום:</b><br>';
-  const weighted = (contentScore + langScore) / 2;
+  feedback = '<b>📊 סיכום:</b><br>';
+  weighted = (contentScore + langScore) / 2;
   if (weighted >= 5) feedback += '🌟 חיבור מצוין! ברמה גבוהה מאוד.';
   else if (weighted >= 4) feedback += '👏 חיבור טוב. עם כמה שיפורים יכול להיות מצוין.';
   else if (weighted >= 3) feedback += '📝 חיבור סביר. יש מקום לשיפור — קרא את ההערות.';
@@ -8578,7 +8578,7 @@ function gradeEssayNITE(text) {
 }
 
 function saveEssay() {
-  let text = document.getElementById('essay-textarea').value.trim();
+  text = document.getElementById('essay-textarea').value.trim();
   if (!text) return;
   let essays = getData('essays', []);
   let scoreEl = document.getElementById('essay-score-num');
@@ -8605,15 +8605,15 @@ function showEssayTab(tab) {
 }
 
 function showEssayHistory() {
-  let essays = getData('essays', []);
+  essays = getData('essays', []);
   let container = document.getElementById('essay-history-list');
   if (!essays.length) {
     container.innerHTML = '<div style="text-align:center;padding:40px;opacity:0.6;">אין חיבורים שמורים עדיין. כתוב את החיבור הראשון שלך!</div>';
     return;
   }
   container.innerHTML = essays.map((e, i) => {
-    let d = new Date(e.date);
-    let dateStr = d.toLocaleDateString('he-IL') + ' ' + d.toLocaleTimeString('he-IL', {hour:'2-digit',minute:'2-digit'});
+    d = new Date(e.date);
+    dateStr = d.toLocaleDateString('he-IL') + ' ' + d.toLocaleTimeString('he-IL', {hour:'2-digit',minute:'2-digit'});
     return '<div class="essay-history-item" onclick="showEssayDetail(' + i + ')">' +
       '<div class="essay-history-date">' + dateStr + '</div>' +
       '<div class="essay-history-prompt">' + e.prompt + '</div>' +
@@ -8623,14 +8623,14 @@ function showEssayHistory() {
 }
 
 function showEssayDetail(idx) {
-  let essays = getData('essays', []);
+  essays = getData('essays', []);
   let e = essays[idx];
   if (!e) return;
   document.getElementById('essay-write').style.display = 'none';
   document.getElementById('essay-history').style.display = 'none';
   document.getElementById('essay-detail').style.display = 'block';
   document.getElementById('essay-detail-prompt').textContent = e.prompt;
-  let d = new Date(e.date);
+  d = new Date(e.date);
   document.getElementById('essay-detail-date').textContent = d.toLocaleDateString('he-IL') + ' ' + d.toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'}) + ' · ' + e.wordCount + ' מילים';
   document.getElementById('essay-detail-score').textContent = e.score ? 'ציון: ' + e.score + '/12' : '';
   document.getElementById('essay-detail-text').textContent = e.text;
@@ -8676,7 +8676,7 @@ function startEssayTimer() {
   if(phaseEl) phaseEl.style.display = 'inline';
   
   function update() {
-    const m = Math.floor(seconds / 60);
+    m = Math.floor(seconds / 60);
     const s = seconds % 60;
     timerEl.textContent = m.toString().padStart(2,'0') + ':' + s.toString().padStart(2,'0');
     timerEl.style.color = phases[currentPhase].color;
@@ -8723,7 +8723,7 @@ function updateLineNumbers() {
 
 // === ADMIN PANEL ===
 async function loadAdminPanel() {
-  let container = document.getElementById('admin-users-list');
+  container = document.getElementById('admin-users-list');
   if (!auth.currentUser || auth.currentUser.email.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
     container.innerHTML = '<div class="card" style="text-align:center;color:var(--error);">⛔ אין הרשאה</div>';
     return;
@@ -8746,19 +8746,19 @@ async function loadAdminPanel() {
   {a:"רם",b:"גובה",c:"ממושך",d:"משך",type:"synonym",unit:0,wrong:["עניין", "יכולת", "טעם"],explanation:"הקשר הוא של מילים נרדפות: 'רם' נרדף ל'גובה', כשם ש'ממושך' נרדף ל'משך'.",source:"nite2019"}
 ];
     snapshot.forEach(doc => {
-      let d = doc.data();
+      d = doc.data();
       users.push({ uid: doc.id, ...d });
     });
     users.sort((a, b) => (b.lastSync || 0) - (a.lastSync || 0));
-    let html = '<div class="card" style="margin-bottom:12px;padding:12px;"><strong>סה"כ: ' + users.length + ' משתמשים</strong></div>';
+    html = '<div class="card" style="margin-bottom:12px;padding:12px;"><strong>סה"כ: ' + users.length + ' משתמשים</strong></div>';
     users.forEach((u, i) => {
-      let email = u.email || 'לא ידוע';
-      let progress = u.progress || {};
-      let totalWords = Object.keys(progress).length;
-      let knownWords = Object.values(progress).filter(v => v >= 4).length;
-      let essays = (u.essays || []).length;
+      email = u.email || 'לא ידוע';
+      progress = u.progress || {};
+      totalWords = Object.keys(progress).length;
+      knownWords = Object.values(progress).filter(v => v >= 4).length;
+      essays = (u.essays || []).length;
       let lastSync = u.lastSync ? new Date(u.lastSync).toLocaleString('he-IL', { timeZone: 'Asia/Jerusalem' }) : 'אף פעם';
-      let lastUnit = u.lastUnit || '-';
+      lastUnit = u.lastUnit || '-';
       html += '<div class="card" style="margin-bottom:10px;padding:16px;">';
       html += '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">';
       html += '<div><strong style="font-size:1.1em;">' + (i+1) + '. ' + email + '</strong></div>';
