@@ -516,10 +516,14 @@ body::before { content:''; position:fixed; inset:0; background: radial-gradient(
             ⏱️ <b>30 דקות</b> | 📏 <b>לפחות 25 שורות</b> | סגנון <b>עיוני</b><br>
             הציגו עמדה מנומקת, תמכו בטיעונים ובדוגמאות, והתייחסו גם לצד השני. נבדק על <b>תוכן</b> (טיעונים + חשיבה ביקורתית) ו<b>לשון</b> (בהירות + דיוק).
           </div>
+          <div style="margin-bottom:12px;">
+            <select id="essayPromptSelect" onchange="selectEssayPrompt(this.value)" style="width:100%;padding:10px 14px;border-radius:10px;border:1px solid var(--border);background:var(--glass);backdrop-filter:blur(10px);color:var(--text);font-family:inherit;font-size:0.95em;direction:rtl;cursor:pointer;">
+            </select>
+          </div>
           <div class="essay-prompt-text" id="essay-prompt-text"></div>
         </div>
         <div style="text-align:center;margin-bottom:12px;">
-          <button class="btn btn-secondary btn-small" onclick="newEssayPrompt()">🔄 נושא אחר</button> <span id="essay-phase" style="display:none;font-weight:bold;font-size:1.1em;margin-right:8px;"></span> <span id="essay-timer" style="display:none;font-weight:bold;font-size:1.1em;margin-right:10px;"></span> <button class="btn" onclick="startEssayTimer()" style="font-size:0.8em;">⏱️ התחל טיימר (5+22+3 דק)</button>
+          <button class="btn btn-secondary btn-small" onclick="newEssayPrompt()">🎲 נושא אקראי</button> <span id="essay-phase" style="display:none;font-weight:bold;font-size:1.1em;margin-right:8px;"></span> <span id="essay-timer" style="display:none;font-weight:bold;font-size:1.1em;margin-right:10px;"></span> <button class="btn" onclick="startEssayTimer()" style="font-size:0.8em;">⏱️ התחל טיימר (5+22+3 דק)</button>
         </div>
         <div style="margin-bottom:16px;">
           <h4 style="margin-bottom:8px;">📋 תכנון טיעונים</h4>
@@ -8193,15 +8197,29 @@ const ESSAY_TIPS = [
 let currentEssayPromptIdx = 0;
 
 function initEssayMode() {
+  // Populate dropdown
+  let sel = document.getElementById('essayPromptSelect');
+  if (sel && sel.options.length === 0) {
+    ESSAY_PROMPTS.forEach((p, i) => {
+      let short = p.prompt.substring(0, 60).replace(/\s+\S*$/, '') + '...';
+      sel.innerHTML += '<option value="' + i + '">' + (i+1) + '. ' + short + '</option>';
+    });
+  }
   if (!document.getElementById('essay-prompt-text').textContent) {
-    currentEssayPromptIdx = 0;
-    document.getElementById('essay-prompt-text').textContent = ESSAY_PROMPTS[0].prompt;
+    newEssayPrompt();
   }
   updateLineNumbers();
 }
 
+function selectEssayPrompt(idx) {
+  currentEssayPromptIdx = parseInt(idx);
+  document.getElementById('essay-prompt-text').textContent = ESSAY_PROMPTS[currentEssayPromptIdx].prompt;
+  document.getElementById('essay-results').style.display = 'none';
+}
+
 function newEssayPrompt() {
   currentEssayPromptIdx = Math.floor(Math.random() * ESSAY_PROMPTS.length);
+  document.getElementById('essayPromptSelect').value = currentEssayPromptIdx;
   document.getElementById('essay-prompt-text').textContent = ESSAY_PROMPTS[currentEssayPromptIdx].prompt;
   document.getElementById('essay-results').style.display = 'none';
 }
