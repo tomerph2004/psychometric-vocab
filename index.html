@@ -519,12 +519,12 @@ body::before { content:''; position:fixed; inset:0; background: radial-gradient(
             ⏱️ <b>30 דקות</b> | 📏 <b>לפחות 25 שורות</b> | סגנון <b>עיוני</b><br>
             הציגו עמדה מנומקת, תמכו בטיעונים ובדוגמאות, והתייחסו גם לצד השני. נבדק על <b>תוכן</b> (טיעונים + חשיבה ביקורתית) ו<b>לשון</b> (בהירות + דיוק).
           </div>
-          <div style="margin-bottom:12px;">
-            <label style="font-size:0.9em;opacity:0.8;margin-bottom:4px;display:block;">📋 בחר נושא:</label>
-            <select id="essayPromptSelect" onchange="selectEssayPrompt(this.value)" style="width:100%;padding:12px 14px;border-radius:10px;border:2px solid rgba(255,255,255,0.2);background:#1a1b2e;color:#eaeaef;font-family:inherit;font-size:0.95em;direction:rtl;cursor:pointer;-webkit-appearance:menulist;">
-            </select>
-          </div>
           <div class="essay-prompt-text" id="essay-prompt-text"></div>
+        </div>
+        <div style="margin-bottom:12px;">
+          <label style="font-size:0.9em;opacity:0.7;margin-bottom:4px;display:block;">📋 בחר נושא:</label>
+          <select id="essayPromptSelect" onchange="selectEssayPrompt(this.value)" style="width:100%;padding:12px 14px;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--text);font-family:inherit;font-size:0.95em;direction:rtl;cursor:pointer;-webkit-appearance:menulist;">
+          </select>
         </div>
         <div style="text-align:center;margin-bottom:12px;">
           <button class="btn btn-secondary btn-small" onclick="newEssayPrompt()">🎲 נושא אקראי</button> <span id="essay-phase" style="display:none;font-weight:bold;font-size:1.1em;margin-right:8px;"></span> <span id="essay-timer" style="display:none;font-weight:bold;font-size:1.1em;margin-right:10px;"></span> <button class="btn" onclick="startEssayTimer()" style="font-size:0.8em;">⏱️ התחל טיימר (5+22+3 דק)</button>
