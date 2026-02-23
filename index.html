@@ -68,6 +68,8 @@ body::before { content:''; position:fixed; inset:0; background: radial-gradient(
 .filters { margin-bottom:16px; display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
 .filters select { padding:8px 12px; border-radius:10px; border:1px solid var(--border); background:var(--glass); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); color:var(--text); font-family:inherit; font-size:0.9em; outline:none; transition:border-color 0.3s; }
 .filters select:focus { border-color:var(--accent); }
+.filters select option { background:#1a1b2e; color:#eaeaef; }
+.light .filters select option { background:#ffffff; color:#2d2d3f; }
 .filters .info { font-size:0.85em; opacity:0.7; margin-right:auto; }
 
 /* Flashcard */
@@ -6104,13 +6106,14 @@ function showEngSentence() {
   }
   
   let q = ENGLISH_SENTENCES[engSentenceIndex];
-  options = shuffle([q.correct, ...q.wrong]);
+  let correct = q.answer || q.correct;
+  let opts = q.options ? shuffle([...q.options]) : shuffle([correct, ...(q.wrong || [])]);
   
   document.getElementById('eng-sent-sentence').innerHTML = q.sentence;
   document.getElementById('eng-sent-score').textContent = `Score: ${engSentScore}/${engSentTotal}`;
   
-  optionsHTML = options.map(opt => 
-    `<button class="quiz-option" onclick="selectEngSentOption('${opt.replace(/'/g, "\\'")}', '${q.correct.replace(/'/g, "\\'")}')">${opt}</button>`
+  optionsHTML = opts.map(opt => 
+    `<button class="quiz-option" onclick="selectEngSentOption('${opt.replace(/'/g, "\\'")}', '${correct.replace(/'/g, "\\'")}')">${opt}</button>`
   ).join('');
   
   document.getElementById('eng-sent-options').innerHTML = optionsHTML;
