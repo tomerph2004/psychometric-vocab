@@ -164,7 +164,6 @@ body::before { content:''; position:fixed; inset:0; background: radial-gradient(
   text-align: center; pointer-events: none; direction: ltr;
   font-family: monospace; white-space: pre-line; z-index: 1;
 }
-[data-theme="dark"] .line-numbers { background: rgba(255,255,255,0.05); }
 .essay-model { background:var(--glass); border:1px solid var(--border); border-radius:14px; padding:20px; margin:12px 0; line-height:1.8; white-space:pre-wrap; direction:rtl; }
 .essay-tips { list-style:none; padding:0; }
 .essay-tips li { padding:6px 0; border-bottom:1px solid var(--border); }
@@ -643,77 +642,6 @@ body::before { content:''; position:fixed; inset:0; background: radial-gradient(
       </div>
     </div>
     
-    <!-- English Modes -->
-    <div id="mode-english" style="display:none;">
-      <!-- English Vocabulary Cards -->
-      <div id="english-vocab" style="display:none;">
-        <div class="card" style="text-align:center;margin-bottom:16px;">
-          <h3>🔤 English Vocabulary Cards</h3>
-          <p style="opacity:0.7;font-size:0.9em;margin-top:4px;">Learn academic English words from real psychometric exams</p>
-          <p style="margin-top:8px;"><strong id="eng-vocab-count"></strong></p>
-        </div>
-        <div class="flashcard-container">
-          <div class="flashcard" id="eng-flashcard" onclick="flipEngCard()">
-            <div class="flashcard-face">
-              <span class="flashcard-unit" id="eng-fc-unit"></span>
-              <div class="flashcard-word" id="eng-fc-word" style="direction:ltr;text-align:center;"></div>
-              <div style="font-size:0.9em;opacity:0.5;margin-top:8px;">Click to flip</div>
-            </div>
-            <div class="flashcard-face flashcard-back">
-              <span class="flashcard-unit" id="eng-fc-unit2"></span>
-              <div class="flashcard-word" id="eng-fc-word2" style="direction:ltr;text-align:center;"></div>
-              <div class="flashcard-def" id="eng-fc-def" style="direction:ltr;text-align:center;font-size:1.1em;"></div>
-              <div class="flashcard-example" id="eng-fc-heb" style="color:var(--accent);font-weight:bold;margin-bottom:8px;"></div>
-              <div class="flashcard-example" id="eng-fc-example" style="direction:ltr;text-align:center;"></div>
-            </div>
-          </div>
-        </div>
-        <div class="flashcard-rating" id="eng-fc-rating" style="display:none;">
-          <button class="btn btn-error btn-small" onclick="rateEngCard(0)">❌ Don't know</button>
-          <button class="btn btn-secondary btn-small" onclick="rateEngCard(1)">🤔 Difficult</button>
-          <button class="btn btn-success btn-small" onclick="rateEngCard(2)">✅ I know it</button>
-        </div>
-        <div class="flashcard-nav">
-          <button class="btn btn-secondary" onclick="prevEngCard()">← Previous</button>
-          <button class="btn btn-primary" onclick="nextEngCard()">Next →</button>
-        </div>
-        <div class="flashcard-progress" id="eng-fc-progress"></div>
-      </div>
-      
-      <!-- English Sentence Completion -->
-      <div id="english-sentences" style="display:none;">
-        <div class="card" style="text-align:center;margin-bottom:16px;">
-          <h3>📝 English Sentence Completion</h3>
-          <p style="opacity:0.7;font-size:0.9em;margin-top:4px;">Fill in the blank with the correct word - like real psychometric exams</p>
-          <div class="quiz-score" id="eng-sent-score">Score: 0/0</div>
-        </div>
-        <div class="card" id="eng-sent-container">
-          <div class="quiz-word" id="eng-sent-sentence" style="direction:ltr;text-align:left;font-size:1.3em;line-height:1.6;"></div>
-          <div class="quiz-options" id="eng-sent-options" style="direction:ltr;"></div>
-          <div class="quiz-feedback" id="eng-sent-feedback" style="display:none;"></div>
-          <div class="quiz-next" id="eng-sent-next" style="display:none;">
-            <button class="btn btn-primary" onclick="nextEngSentence()">Next Question →</button>
-          </div>
-        </div>
-      </div>
-      
-      <!-- English Word Match -->
-      <div id="english-match" style="display:none;">
-        <div class="card" style="text-align:center;margin-bottom:16px;">
-          <h3>🔄 English-Hebrew Word Match</h3>
-          <p style="opacity:0.7;font-size:0.9em;margin-top:4px;">Match English words with their Hebrew translations</p>
-          <div class="quiz-score" id="eng-match-score">Score: 0/0</div>
-        </div>
-        <div class="card" id="eng-match-container">
-          <div class="quiz-word" id="eng-match-word" style="direction:ltr;text-align:center;font-size:2.2em;"></div>
-          <div class="quiz-options" id="eng-match-options"></div>
-          <div class="quiz-feedback" id="eng-match-feedback" style="display:none;"></div>
-          <div class="quiz-next" id="eng-match-next" style="display:none;">
-            <button class="btn btn-primary" onclick="nextEngMatch()">Next Word →</button>
-          </div>
-        </div>
-      </div>
-    </div>
 
   </div>
 
@@ -920,11 +848,7 @@ body::before { content:''; position:fixed; inset:0; background: radial-gradient(
 </div>
 
 <script>
-window.onerror = function(msg, src, line, col, err) {
-  var d = document.getElementById('authError');
-  if (d) { d.style.display = 'block'; d.textContent = 'JS Error: ' + msg + ' (line ' + line + ')'; }
-  console.error('Global error:', msg, 'line:', line);
-};
+// Error handling removed (debug code)
 const ADMIN_EMAIL = 'tomer.p.tom@gmail.com';
 const VOCAB = [
   { word: "אבן משחזת", definition: "אבן להשחזה ולחידוד של סכינים או חומרים קשים כח פיזיקאי יודע כי על מנת להשחיז חומרים קשים", example: "במיוחד נכון להשתמש באבן משחזת רכה" , unit: 1 },
@@ -5352,10 +5276,8 @@ function firebaseErrorHebrew(code) {
 }
 
 async function handleAuth() {
-  console.log('handleAuth called');
   let email = document.getElementById('authEmail').value.trim();
   let password = document.getElementById('authPassword').value;
-  console.log('email:', email, 'password length:', password.length);
   if (!email || !password) { showAuthError('נא למלא אימייל וסיסמה'); return; }
   if (authMode === 'register') {
     let confirm = document.getElementById('authPasswordConfirm').value;
@@ -5574,10 +5496,7 @@ function shuffle(arr) {
   return a;
 }
 
-// Init - Firebase auth handles login now
-function initApp() {
-  // Auth state listener already set up above
-}
+// Init - Firebase auth handles login via onAuthStateChanged above
 
 function showApp() {
   document.getElementById('welcome').style.display = 'none';
@@ -5739,11 +5658,7 @@ function setMode(mode) {
     if (el) el.style.display = m === mode ? 'block' : 'none';
   });
   
-  // Show/hide English sub-navigation
-  let englishSubNav = document.getElementById('englishSubNav');
-  englishSubNav.style.display = mode === 'english' ? 'block' : 'none';
-  
-  document.getElementById('filtersBar').style.display = ['stats','timedQuiz','english'].includes(mode) ? 'none' : 'flex';
+  document.getElementById('filtersBar').style.display = ['stats','timedQuiz'].includes(mode) ? 'none' : 'flex';
   
   if (mode === 'flashcards') showFlashcard();
   if (mode === 'unknown') showUnknownMode();
@@ -5758,7 +5673,6 @@ function setMode(mode) {
   if (mode === 'essay') initEssayMode();
   if (mode === 'admin') loadAdminPanel();
   
-  if (mode !== 'english') englishMode = false;
 }
 
 // Flashcards
@@ -8657,8 +8571,7 @@ function shareLink() {
 
 // ============ END CLOUD SYNC ============
 
-// Start
-initApp();
+// App starts via auth.onAuthStateChanged above
 
 function startEssayTimer() {
   if(window.essayTimerInterval) clearInterval(window.essayTimerInterval);
@@ -8731,20 +8644,7 @@ async function loadAdminPanel() {
   container.innerHTML = '<div style="text-align:center;padding:40px;opacity:0.5;">⏳ טוען משתמשים...</div>';
   try {
     let snapshot = await db.collection('users').get();
-    let users = [,
-  {a:"מושלם",b:"פגם",c:"ריק",d:"תוכן",type:"antonym_concept",unit:0,wrong:["אף", "סוכר", "שורשים"],explanation:"הקשר הוא של ניגוד מושגי: 'מושלם' מייצג היפך מושגי של 'פגם', כשם ש'ריק' מייצג היפך מושגי של 'תוכן'.",source:"nite2019"},
-  {a:"לשכנע",b:"לטעון",c:"לקלוע",d:"לזרוק",type:"cause_effect",unit:0,wrong:["להסתיר", "להביך", "לענות"],explanation:"הקשר: 'לשכנע' קשור ל'לטעון', כשם ש'לקלוע' קשור ל'לזרוק'.",source:"nite2019"},
-  {a:"הסתפק",b:"מספיק",c:"העדיף",d:"עדיף",type:"synonym",unit:0,wrong:["רציני", "מוגזם", "מובטח"],explanation:"הקשר הוא של מילים נרדפות: 'הסתפק' נרדף ל'מספיק', כשם ש'העדיף' נרדף ל'עדיף'.",source:"nite2019"},
-  {a:"כמוסה",b:"מזרק",c:"גפרור",d:"מצית",type:"tool_action",unit:0,wrong:["ספר", "מסור", "אשנב"],explanation:"הקשר: 'כמוסה' קשור ל'מזרק', כשם ש'גפרור' קשור ל'מצית'.",source:"nite2019"},
-  {a:"תו",b:"סימפוניה",c:"אות",d:"רומן",type:"part_whole",unit:0,wrong:["מתמטיקה", "מספר", "ניקוד"],explanation:"הקשר הוא של חלק ושלם: 'תו' הוא חלק מ'סימפוניה', כשם ש'אות' הוא חלק מ'רומן'.",source:"nite2019"},
-  {a:"התגושש",b:"התגוששות",c:"נפגש",d:"מפגש",type:"synonym",unit:0,wrong:["חתונה", "ייעוץ", "מרדף"],explanation:"הקשר הוא של מילים נרדפות: 'התגושש' נרדף ל'התגוששות', כשם ש'נפגש' נרדף ל'מפגש'.",source:"nite2019"},
-  {a:"למחול",b:"בלתי נסלח",c:"לגבור",d:"בלתי מנוצח",type:"antonym_concept",unit:0,wrong:["בלתי ראוי", "בלתי ידוע", "בלתי נמנע"],explanation:"הקשר הוא של ניגוד מושגי: 'למחול' מייצג היפך מושגי של 'בלתי נסלח', כשם ש'לגבור' מייצג היפך מושגי של 'בלתי מנוצח'.",source:"nite2019"},
-  {a:"חיריק",b:"נקודה",c:"תורן",d:"מוט",type:"category",unit:0,wrong:["צידה", "מאפה", "יציע"],explanation:"הקשר הוא של שייכות לקטגוריה: 'חיריק' ו'נקודה' שייכים לאותה קטגוריה, כשם ש'תורן' ו'מוט' שייכים לאותה קטגוריה.",source:"nite2019"},
-  {a:"אנשים",b:"להקהיל",c:"זרדים",d:"לקושש",type:"action_object",unit:0,wrong:["לסחוט", "לקלוע", "להשקות"],explanation:"הקשר הוא של פעולה ואובייקט: 'אנשים' פועל על 'להקהיל', כשם ש'זרדים' פועל על 'לקושש'.",source:"nite2019"},
-  {a:"רצף",b:"טאטא",c:"חייט",d:"כיבס",type:"tool_worker",unit:0,wrong:["חפף", "הדיח", "חיטא"],explanation:"הקשר הוא של כלי ובעל מקצוע: 'רצף' הוא כלי של 'טאטא', כשם ש'חייט' הוא כלי של 'כיבס'.",source:"nite2019"},
-  {a:"הלחיץ",b:"הזיע",c:"שעמם",d:"פיהק",type:"cause_effect",unit:0,wrong:["מצמץ", "צחק", "כעס"],explanation:"הקשר: 'הלחיץ' קשור ל'הזיע', כשם ש'שעמם' קשור ל'פיהק'.",source:"nite2019"},
-  {a:"רם",b:"גובה",c:"ממושך",d:"משך",type:"synonym",unit:0,wrong:["עניין", "יכולת", "טעם"],explanation:"הקשר הוא של מילים נרדפות: 'רם' נרדף ל'גובה', כשם ש'ממושך' נרדף ל'משך'.",source:"nite2019"}
-];
+    let users = [];
     snapshot.forEach(doc => {
       d = doc.data();
       users.push({ uid: doc.id, ...d });
