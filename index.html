@@ -6775,6 +6775,9 @@ async function loadFromFirestore() {
         localStorage.setItem('soundEnabled', soundEnabled);
         document.getElementById('soundToggle').textContent = soundEnabled ? '🔊' : '🔇';
       }
+      if (data.eng_progress) localStorage.setItem(sKey('eng_progress'), JSON.stringify(data.eng_progress));
+      if (data.eng_srs) localStorage.setItem(sKey('eng_srs'), JSON.stringify(data.eng_srs));
+      if (data.eng_mistakes) localStorage.setItem(sKey('eng_mistakes'), JSON.stringify(data.eng_mistakes));
     }
   } catch(e) { console.error('Firestore load error:', e); }
 }
@@ -6827,6 +6830,9 @@ function saveToFirestore() {
       analogy_stats: getData('analogy_stats', {correct:0, total:0}),
       dailyStats: getData('dailyStats', []),
       soundEnabled: soundEnabled,
+      eng_progress: JSON.parse(localStorage.getItem(sKey('eng_progress')) || '{}'),
+      eng_srs: JSON.parse(localStorage.getItem(sKey('eng_srs')) || '{}'),
+      eng_mistakes: JSON.parse(localStorage.getItem(sKey('eng_mistakes')) || '[]'),
       lastSync: Date.now(),
       email: auth.currentUser ? auth.currentUser.email : ''
     };
@@ -7443,14 +7449,7 @@ function srSortEng(words) {
   });
 }
 
-function updateEngSpacedRepetitionCount() {
-  srs = JSON.parse(localStorage.getItem(sKey('eng_srs')) || '{}');
-  now = Date.now();
-  let due = Object.keys(srs).filter(w => srs[w].due <= now).length;
-  
-  // Update count display in header if needed
-  // document.getElementById('engSpacedRepetitionCount').textContent = due > 0 ? `📚 ${due}` : '';
-}
+// updateEngSpacedRepetitionCount defined below in English stats section
 
 // English Quiz Functions
 engQuizIndex = 0;
@@ -7786,230 +7785,7 @@ function updateEngSpacedRepetitionCount() {
   }
 }
 
-// ============ ENGLISH MODES ============
-let currentEngVocabIndex = 0;
-let englishVocabWords = [];
-let engSentenceIndex = 0;
-let engSentenceScore = { correct: 0, total: 0 };
-engMatchIndex = 0;
-engMatchScore = { correct: 0, total: 0 };
-
-function setEnglishMode(subMode) {
-  currentEnglishSubMode = subMode;
-  
-  // Update sub-nav buttons
-  document.querySelectorAll('#englishSubNav .btn').forEach(btn => {
-    btn.classList.remove('active');
-    if ((subMode === 'vocab' && btn.textContent.includes('Vocabulary')) ||
-        (subMode === 'sentences' && btn.textContent.includes('Sentence')) ||
-        (subMode === 'match' && btn.textContent.includes('Match'))) {
-      btn.classList.add('active');
-    }
-  });
-  
-  // Show/hide sub-modes
-  document.getElementById('english-vocab').style.display = subMode === 'vocab' ? 'block' : 'none';
-  document.getElementById('english-sentences').style.display = subMode === 'sentences' ? 'block' : 'none';
-  document.getElementById('english-match').style.display = subMode === 'match' ? 'block' : 'none';
-  
-  // Initialize the selected mode
-  if (subMode === 'vocab') initEngVocab();
-  if (subMode === 'sentences') initEngSentences();
-  if (subMode === 'match') initEngMatch();
-}
-
-// English Vocabulary Cards
-function initEngVocab() {
-  englishVocabWords = ENGLISH_VOCAB.slice().sort(() => Math.random() - 0.5);
-  currentEngVocabIndex = 0;
-  showEngVocabCard();
-  document.getElementById('eng-vocab-count').textContent = englishVocabWords.length + ' words available';
-}
-
-function showEngVocabCard() {
-  if (!englishVocabWords.length) return;
-  if (currentEngVocabIndex >= englishVocabWords.length) currentEngVocabIndex = 0;
-  if (currentEngVocabIndex < 0) currentEngVocabIndex = englishVocabWords.length - 1;
-  
-  word = englishVocabWords[currentEngVocabIndex];
-  document.getElementById('eng-fc-unit').textContent = 'Unit ' + word.unit;
-  document.getElementById('eng-fc-unit2').textContent = 'Unit ' + word.unit;
-  document.getElementById('eng-fc-word').textContent = word.word;
-  document.getElementById('eng-fc-word2').textContent = word.word;
-  document.getElementById('eng-fc-def').textContent = word.def;
-  document.getElementById('eng-fc-heb').textContent = word.heb;
-  document.getElementById('eng-fc-example').textContent = word.example;
-  document.getElementById('eng-fc-progress').textContent = (currentEngVocabIndex + 1) + '/' + englishVocabWords.length;
-  
-  // Reset card state
-  document.getElementById('eng-flashcard').classList.remove('flipped');
-  document.getElementById('eng-fc-rating').style.display = 'none';
-}
-
-function flipEngCard() {
-  document.getElementById('eng-flashcard').classList.toggle('flipped');
-  document.getElementById('eng-fc-rating').style.display = 
-    document.getElementById('eng-flashcard').classList.contains('flipped') ? 'flex' : 'none';
-}
-
-function rateEngCard(rating) {
-  // Store progress in separate English progress tracking
-  progress = getData(username + '_eng_progress', {});
-  word = englishVocabWords[currentEngVocabIndex];
-  progress[word.word] = { rating: rating, date: Date.now() };
-  setData(username + '_eng_progress', progress);
-  syncEngProgress();
-  playSound(rating >= 2 ? 'success' : 'error');
-  nextEngCard();
-}
-
-// nextEngCard/prevEngCard defined above in main English flashcard section
-
-// English Sentence Completion
-function initEngSentences() {
-  engSentenceIndex = 0;
-  engSentenceScore = { correct: 0, total: 0 };
-  nextEngSentence();
-}
-
-function nextEngSentence() {
-  if (engSentenceIndex >= ENGLISH_SENTENCES.length) {
-    engSentenceIndex = 0;
-  }
-  
-  q = ENGLISH_SENTENCES[engSentenceIndex];
-  let sentence = q.sentence.replace('______', '_____');
-  
-  document.getElementById('eng-sent-sentence').innerHTML = sentence;
-  
-  // Shuffle options
-  options = [...q.options].sort(() => Math.random() - 0.5);
-  let optionsHtml = options.map(opt => 
-    '<button class="quiz-option" onclick="checkEngSentence(\'' + opt + '\', \'' + q.answer + '\')" style="text-align:left;">' + opt + '</button>'
-  ).join('');
-  
-  document.getElementById('eng-sent-options').innerHTML = optionsHtml;
-  document.getElementById('eng-sent-feedback').style.display = 'none';
-  document.getElementById('eng-sent-next').style.display = 'none';
-  document.getElementById('eng-sent-score').textContent = 'Score: ' + engSentenceScore.correct + '/' + engSentenceScore.total;
-}
-
-function checkEngSentence(selected, correct) {
-  engSentenceScore.total++;
-  isCorrect = selected === correct;
-  if (isCorrect) engSentenceScore.correct++;
-  
-  // Disable all options
-  document.querySelectorAll('#eng-sent-options .quiz-option').forEach(opt => {
-    opt.classList.add('disabled');
-    if (opt.textContent === correct) opt.classList.add('correct');
-    if (opt.textContent === selected && !isCorrect) opt.classList.add('wrong');
-  });
-  
-  // Show feedback
-  feedback = document.getElementById('eng-sent-feedback');
-  feedback.className = 'quiz-feedback ' + (isCorrect ? 'correct' : 'wrong');
-  feedback.innerHTML = isCorrect ? 
-    '<strong>✅ Correct!</strong>' :
-    '<strong>❌ Incorrect.</strong> The correct answer is: <strong>' + correct + '</strong>';
-  feedback.style.display = 'block';
-  document.getElementById('eng-sent-next').style.display = 'block';
-  
-  engSentenceIndex++;
-  playSound(isCorrect ? 'success' : 'error');
-  
-  // Store English sentence progress
-  progress = getData(username + '_eng_sentences_progress', {});
-  progress[ENGLISH_SENTENCES[engSentenceIndex-1].sentence] = { correct: isCorrect, date: Date.now() };
-  setData(username + '_eng_sentences_progress', progress);
-}
-
-// English Word Match
-function initEngMatch() {
-  engMatchIndex = 0;
-  engMatchScore = { correct: 0, total: 0 };
-  nextEngMatch();
-}
-
-function nextEngMatch() {
-  if (engMatchIndex >= ENGLISH_VOCAB.length) {
-    engMatchIndex = 0;
-  }
-  
-  word = ENGLISH_VOCAB[engMatchIndex];
-  document.getElementById('eng-match-word').textContent = word.word;
-  
-  // Create options: correct Hebrew translation + 3 wrong ones
-  options = [word.heb];
-  otherWords = ENGLISH_VOCAB.filter(w => w.word !== word.word);
-  while (options.length < 4) {
-    let randomWord = otherWords[Math.floor(Math.random() * otherWords.length)];
-    if (!options.includes(randomWord.heb)) {
-      options.push(randomWord.heb);
-    }
-  }
-  
-  // Shuffle options
-  options.sort(() => Math.random() - 0.5);
-  
-  optionsHtml = options.map(opt => 
-    '<button class="quiz-option" onclick="checkEngMatch(\'' + opt.replace(/'/g, '\\\'') + '\', \'' + word.heb.replace(/'/g, '\\\'') + '\')">' + opt + '</button>'
-  ).join('');
-  
-  document.getElementById('eng-match-options').innerHTML = optionsHtml;
-  document.getElementById('eng-match-feedback').style.display = 'none';
-  document.getElementById('eng-match-next').style.display = 'none';
-  document.getElementById('eng-match-score').textContent = 'Score: ' + engMatchScore.correct + '/' + engMatchScore.total;
-}
-
-function checkEngMatch(selected, correct) {
-  engMatchScore.total++;
-  isCorrect = selected === correct;
-  if (isCorrect) engMatchScore.correct++;
-  
-  // Disable all options
-  document.querySelectorAll('#eng-match-options .quiz-option').forEach(opt => {
-    opt.classList.add('disabled');
-    if (opt.textContent === correct) opt.classList.add('correct');
-    if (opt.textContent === selected && !isCorrect) opt.classList.add('wrong');
-  });
-  
-  // Show feedback
-  feedback = document.getElementById('eng-match-feedback');
-  feedback.className = 'quiz-feedback ' + (isCorrect ? 'correct' : 'wrong');
-  feedback.innerHTML = isCorrect ? 
-    '<strong>✅ Correct!</strong>' :
-    '<strong>❌ Incorrect.</strong> The correct answer is: <strong>' + correct + '</strong>';
-  feedback.style.display = 'block';
-  document.getElementById('eng-match-next').style.display = 'block';
-  
-  engMatchIndex++;
-  playSound(isCorrect ? 'success' : 'error');
-  
-  // Store progress
-  progress = getData(username + '_eng_match_progress', {});
-  progress[ENGLISH_VOCAB[engMatchIndex-1].word] = { correct: isCorrect, date: Date.now() };
-  setData(username + '_eng_match_progress', progress);
-}
-
-// Sync English progress to Firebase
-function syncEngProgress() {
-  if (!window.db || !username) return;
-  try {
-    let engProgress = getData(username + '_eng_progress', {});
-    let engSentProgress = getData(username + '_eng_sentences_progress', {});
-    let engMatchProgress = getData(username + '_eng_match_progress', {});
-    
-    window.db.collection('users').doc(username).set({
-      eng_progress: engProgress,
-      eng_sentences_progress: engSentProgress,
-      eng_match_progress: engMatchProgress,
-      last_sync: new Date().toISOString()
-    }, { merge: true });
-  } catch (e) {
-    console.log('English sync failed:', e);
-  }
-}
+// Old duplicate English functions removed — using setEngMode() system above
 
 // Quiz
 function startQuiz() {
