@@ -7255,9 +7255,10 @@ function showEngFlashcard() {
   // Back side
   document.getElementById('eng-fc-unit2').textContent = 'Unit ' + w.unit;
   document.getElementById('eng-fc-word2').textContent = w.word;
-  document.getElementById('eng-fc-def').textContent = w.def;
-  document.getElementById('eng-fc-heb').textContent = w.heb;
-  document.getElementById('eng-fc-example').textContent = w.example;
+  document.getElementById('eng-fc-def').textContent = w.def || w.heb || '';
+  document.getElementById('eng-fc-heb').textContent = w.heb || w.def || '';
+  document.getElementById('eng-fc-heb').style.display = (w.heb || w.def) ? 'block' : 'none';
+  document.getElementById('eng-fc-example').textContent = w.example || '';
   
   // Reset flip state
   document.getElementById('eng-flashcard').classList.remove('flipped');
@@ -7862,8 +7863,7 @@ function rateEngCard(rating) {
   nextEngCard();
 }
 
-function nextEngCard() { currentEngVocabIndex++; showEngVocabCard(); }
-function prevEngCard() { currentEngVocabIndex--; showEngVocabCard(); }
+// nextEngCard/prevEngCard defined above in main English flashcard section
 
 // English Sentence Completion
 function initEngSentences() {
