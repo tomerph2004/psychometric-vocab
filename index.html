@@ -7312,9 +7312,9 @@ function updateEngUnknownWords() {
   let progress = JSON.parse(localStorage.getItem(sKey('eng_progress')) || '{}');
   let unknown = JSON.parse(localStorage.getItem(sKey('eng_unknown')) || '[]');
   
-  // Words that are unknown or never seen
-  engUnknownWords = ENGLISH_VOCAB.filter(w => {
-    return unknown.includes(w.word) || !progress[w.word] || progress[w.word].correct === 0;
+  // Only words explicitly marked as unknown — not unseen words
+  engUnknownWords = filteredEngWords.filter(w => {
+    return unknown.includes(w.word) || (progress[w.word] && progress[w.word].rating === 0);
   });
   
   document.getElementById('eng-unknown-count').textContent = engUnknownWords.length + ' unknown words';
@@ -7894,12 +7894,12 @@ function getUnknownWords() {
   mistakes = getMistakes();
   let mistakeWords = new Set(mistakes.map(w => w.word));
   
-  // Words that: never seen, OR marked wrong and not yet mastered
+  // Only words explicitly marked as unknown (❌) — not unseen words
   return filteredWords.filter(w => {
     wp = p[w.word];
-    if (!wp) return true; // never seen
+    if (!wp) return false; // never seen = not shown here
     if (mistakeWords.has(w.word)) return true; // in mistakes list
-    if (wp.wrong > wp.correct) return true; // more wrong than right
+    if (wp.wrong > 0 && wp.wrong >= wp.correct) return true; // marked wrong
     return false;
   });
 }
