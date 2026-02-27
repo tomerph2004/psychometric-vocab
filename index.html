@@ -10446,7 +10446,7 @@ function setMathCategory(cat) {
     }).join('') + '</div>';
 }
 
-function showMathChapter(id) {
+function showMathChapter(id, keepScroll) {
   const ch = MATH_CHAPTERS.find(c => c.id === id);
   if (!ch) return;
   document.getElementById('mathChapterList').style.display = 'none';
@@ -10496,8 +10496,7 @@ function showMathChapter(id) {
   
   html += '</div>';
   view.innerHTML = html;
-  view.scrollTop = 0;
-  window.scrollTo(0,0);
+  if (!keepScroll) { view.scrollTop = 0; window.scrollTo(0,0); }
 }
 
 function checkMathAnswer(chapterId, qIndex, selected) {
@@ -10505,7 +10504,9 @@ function checkMathAnswer(chapterId, qIndex, selected) {
   const correct = selected === q.answer;
   mathAnswered[chapterId+'_'+qIndex] = correct ? true : selected;
   localStorage.setItem((typeof username!=='undefined'?username:'')+'_mathAnswered', JSON.stringify(mathAnswered));
-  showMathChapter(chapterId);
+  const scrollY = window.scrollY;
+  showMathChapter(chapterId, true);
+  requestAnimationFrame(() => window.scrollTo(0, scrollY));
 }
 // Render fractions as vertical (numerator over denominator)
 function renderFrac(text) {
