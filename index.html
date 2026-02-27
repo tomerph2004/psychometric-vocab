@@ -269,6 +269,13 @@ body::before { content:''; position:fixed; inset:0; background: radial-gradient(
           <p style="opacity:0.6; margin-bottom:16px;">דגשים ודוגמאות</p>
           <div style="font-weight:bold; color:var(--success);">26 פרקים</div>
         </div>
+        
+        <div class="card" onclick="selectLanguage('strategy')" style="cursor:pointer; transition: transform 0.2s; text-align:center; padding:32px;">
+          <div style="font-size:3em; margin-bottom:12px;">🎯</div>
+          <h3 style="font-size:1.8em; font-weight:bold; color:var(--accent); margin-bottom:8px;">אסטרטגיה</h3>
+          <p style="opacity:0.6; margin-bottom:16px;">טיפים למבחן</p>
+          <div style="font-weight:bold; color:var(--success);">ניהול זמן וטכניקות</div>
+        </div>
       </div>
     </div>
   </div>
@@ -870,6 +877,125 @@ body::before { content:''; position:fixed; inset:0; background: radial-gradient(
     </div>
     <div id="mathChapterList"></div>
     <div id="mathChapterView" style="display:none;"></div>
+  </div>
+
+  <!-- Strategy Section -->
+  <div id="strategyApp" style="display:none; max-width:800px; margin:0 auto; padding:16px;">
+    
+    <h2 style="text-align:center; font-size:2em; margin-bottom:24px; color:var(--accent);">🎯 אסטרטגיה למבחן הפסיכומטרי</h2>
+    
+    <!-- מבנה הבחינה -->
+    <div class="card" style="padding:24px; margin-bottom:20px;">
+      <h3 style="margin-bottom:16px; font-size:1.3em;">📋 מבנה הבחינה</h3>
+      <ul style="list-style:none; padding:0; line-height:2;">
+        <li>▸ <strong>8 פרקים</strong> — 6 נבדקים + 2 פיילוט (לא ידוע מראש מי פיילוט)</li>
+        <li>▸ <strong>3 תחומים:</strong> כמותי, מילולי, אנגלית</li>
+        <li>▸ <strong>20 דקות לכל פרק</strong></li>
+        <li>▸ כל פרק צריך לקבל מלוא תשומת הלב!</li>
+      </ul>
+    </div>
+
+    <!-- חלוקת זמן -->
+    <div class="card" style="padding:24px; margin-bottom:20px; background:rgba(255,193,7,0.06); border:1px solid rgba(255,193,7,0.2);">
+      <h3 style="margin-bottom:16px; font-size:1.3em;">⏱️ חלוקת זמן מומלצת</h3>
+      <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:16px;">
+        <div style="text-align:center; padding:16px; border-radius:12px; background:var(--card-bg); border:1px solid var(--border);">
+          <div style="font-size:2em; font-weight:bold; color:var(--accent);">60</div>
+          <div style="opacity:0.7;">שניות לשאלה</div>
+          <div style="font-weight:bold; margin-top:4px;">📐 כמותי</div>
+          <div style="font-size:0.85em; opacity:0.6;">20 שאלות ב-20 דקות</div>
+        </div>
+        <div style="text-align:center; padding:16px; border-radius:12px; background:var(--card-bg); border:1px solid var(--border);">
+          <div style="font-size:2em; font-weight:bold; color:var(--accent);">52</div>
+          <div style="opacity:0.7;">שניות לשאלה</div>
+          <div style="font-weight:bold; margin-top:4px;">📖 מילולי</div>
+          <div style="font-size:0.85em; opacity:0.6;">23 שאלות ב-20 דקות</div>
+        </div>
+        <div style="text-align:center; padding:16px; border-radius:12px; background:var(--card-bg); border:1px solid var(--border);">
+          <div style="font-size:2em; font-weight:bold; color:var(--accent);">55</div>
+          <div style="opacity:0.7;">שניות לשאלה</div>
+          <div style="font-weight:bold; margin-top:4px;">🇬🇧 אנגלית</div>
+          <div style="font-size:0.85em; opacity:0.6;">22 שאלות ב-20 דקות</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- טיפים לכל פרק -->
+    <div class="card" style="padding:24px; margin-bottom:20px;">
+      <h3 style="margin-bottom:16px; font-size:1.3em;">💡 טיפים לכל תחום</h3>
+      
+      <div style="margin-bottom:20px; padding:16px; border-radius:12px; border:1px solid var(--border);">
+        <h4 style="color:var(--accent); margin-bottom:8px;">📐 כמותי</h4>
+        <ul style="list-style:none; padding:0; line-height:1.8;">
+          <li>▸ השקיעו פחות זמן בשאלות הראשונות — הן לרוב קלות</li>
+          <li>▸ תעדיפו שאלות בנושאים החזקים שלכם</li>
+          <li>▸ אל תבזבזו זמן על נושאים "אבודים מראש"</li>
+          <li>▸ <strong>דקה לשאלה</strong> — אם עברתם דקה וחצי, דלגו</li>
+        </ul>
+      </div>
+
+      <div style="margin-bottom:20px; padding:16px; border-radius:12px; border:1px solid var(--border);">
+        <h4 style="color:var(--accent); margin-bottom:8px;">📖 מילולי</h4>
+        <ul style="list-style:none; padding:0; line-height:1.8;">
+          <li>▸ אנלוגיות (6 שאלות): ~30 שניות לשאלה</li>
+          <li>▸ שאלות עם מלל רב לוקחות יותר זמן — תכננו בהתאם</li>
+          <li>▸ השאלות בסדר קושי עולה — בחרו בחוכמה</li>
+          <li>▸ הזמן שנחסך באנלוגיות → משקיעים בהבנת הנקרא</li>
+        </ul>
+      </div>
+
+      <div style="padding:16px; border-radius:12px; border:1px solid var(--border);">
+        <h4 style="color:var(--accent); margin-bottom:8px;">🇬🇧 אנגלית</h4>
+        <ul style="list-style:none; padding:0; line-height:1.8;">
+          <li>▸ 8 שאלות השלמת משפטים: פחות מדקה — או שמכירים את המילה או שלא</li>
+          <li>▸ הזמן שנחסך → משקיעים בטקסטים ושאלות ניסוח מחדש</li>
+          <li>▸ אם לא יודעים מילה — פסלו תשובות לפי הקשר</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- שיטת הדילוג -->
+    <div class="card" style="padding:24px; margin-bottom:20px; background:rgba(76,175,80,0.06); border:1px solid rgba(76,175,80,0.2);">
+      <h3 style="margin-bottom:16px; font-size:1.3em;">🦘 שיטת הדילוג האסטרטגי</h3>
+      <ul style="list-style:none; padding:0; line-height:2;">
+        <li>▸ <strong>פתרו קלות קודם</strong> — חזרו למסומנות בסוף</li>
+        <li>▸ <strong>זהו את סוג השאלה תוך שניות</strong> — אל תבזבזו זמן על התלבטות</li>
+        <li>▸ <strong>אם מוותרים על שאלה:</strong></li>
+        <li style="padding-right:20px;">① סמנו תשובה מושכלת (ניחוש מחושב > שאלה ריקה)</li>
+        <li style="padding-right:20px;">② או סמנו כוכבית וחזרו בסוף הפרק</li>
+        <li>▸ <strong>הכלל:</strong> עדיף לוותר על שאלה קשה אחת ולהרוויח 3 שאלות קלות</li>
+        <li>▸ <strong>אל תיתקעו!</strong> 4 דקות על שאלה אחת = 5 שאלות קלות שפספסתם</li>
+      </ul>
+    </div>
+
+    <!-- בניית קצב -->
+    <div class="card" style="padding:24px; margin-bottom:20px;">
+      <h3 style="margin-bottom:16px; font-size:1.3em;">🏃 בניית תחושת קצב</h3>
+      <ul style="list-style:none; padding:0; line-height:2;">
+        <li>▸ <strong>תרגול עם סטופר:</strong> תלמדו איך מרגישה "דקה לשאלה"</li>
+        <li>▸ <strong>סימולציות מלאות:</strong> פרקים שלמים, מטרה להגיע עד הסוף</li>
+        <li>▸ <strong>תחקור אחרי תרגול:</strong> איפה התעכבתם? עבדו על זה ממוקד</li>
+        <li>▸ הרגלים מהאימון יופיעו אוטומטית ביום הבחינה</li>
+      </ul>
+    </div>
+
+    <!-- ויתור חכם -->
+    <div class="card" style="padding:24px; margin-bottom:20px; background:rgba(244,67,54,0.06); border:1px solid rgba(244,67,54,0.2);">
+      <h3 style="margin-bottom:16px; font-size:1.3em;">🧠 ויתור חכם = ציון גבוה</h3>
+      <ul style="list-style:none; padding:0; line-height:2;">
+        <li>▸ <strong>קבלו מראש:</strong> לא חייבים לגשת לכל השאלות</li>
+        <li>▸ ויתור על שאלות קשות = יותר זמן לשאלות שתצליחו</li>
+        <li>▸ <strong>לעולם אל תשאירו שאלה ריקה!</strong> — סמנו ניחוש</li>
+        <li>▸ פסלו תשובות ← ניחוש מ-2 אופציות (50%) >> ניחוש מ-4 (25%)</li>
+      </ul>
+    </div>
+
+    <!-- טיפ אחרון -->
+    <div class="card" style="padding:24px; margin-bottom:20px; text-align:center;">
+      <div style="font-size:2em; margin-bottom:12px;">💪</div>
+      <p style="font-size:1.2em; font-weight:bold; color:var(--accent); line-height:1.6;">ניהול זמן בפסיכומטרי הוא לא כישרון מולד — הוא טכניקה נרכשת.<br>תתרגלו, תתחקרו, ותשתפרו.</p>
+    </div>
+
   </div>
 
 </div>
@@ -6998,17 +7124,25 @@ function selectLanguage(lang) {
     document.getElementById('mainApp').style.display = 'block';
     document.getElementById('englishApp').style.display = 'none';
     document.getElementById('mathApp').style.display = 'none';
+    document.getElementById('strategyApp').style.display = 'none';
     initHebrewApp();
   } else if (lang === 'english') {
     document.getElementById('mainApp').style.display = 'none';
     document.getElementById('englishApp').style.display = 'block';
     document.getElementById('mathApp').style.display = 'none';
+    document.getElementById('strategyApp').style.display = 'none';
     initEnglishApp();
   } else if (lang === 'math') {
     document.getElementById('mainApp').style.display = 'none';
     document.getElementById('englishApp').style.display = 'none';
     document.getElementById('mathApp').style.display = 'block';
+    document.getElementById('strategyApp').style.display = 'none';
     initMathApp();
+  } else if (lang === 'strategy') {
+    document.getElementById('mainApp').style.display = 'none';
+    document.getElementById('englishApp').style.display = 'none';
+    document.getElementById('mathApp').style.display = 'none';
+    document.getElementById('strategyApp').style.display = 'block';
   }
 }
 
@@ -7017,6 +7151,7 @@ function backToLanguageSelection() {
   document.getElementById('mainApp').style.display = 'none';
   document.getElementById('englishApp').style.display = 'none';
   document.getElementById('mathApp').style.display = 'none';
+  document.getElementById('strategyApp').style.display = 'none';
   
   // Show language selection screen
   document.getElementById('languageSelect').style.display = 'block';
@@ -9953,7 +10088,7 @@ const MATH_CHAPTERS = [
   {id:18,title:"צרופים",category:"בעיות",tips:["'וגם' → כפל, 'או' → חיבור","סידור n איברים = n!","עם החזרה: המאגר נשאר זהה; בלי החזרה: קטן ב-1","ספרה שמאלית ≠ 0","לדעת בע\"פ: 2!=2, 3!=6, 4!=24, 5!=120","חיסור: מותר = סה\"כ - אסור","בחירת קבוצה: מחלקים ב-n! של האיברים שנבחרו","פעולה הדדית: n(n-1)/2"]},
   {id:19,title:"הסתברות",category:"בעיות",tips:["הסתברות = רצוי / כולל","0 ≤ הסתברות ≤ 1","הסתברות משלימה: סכום כל המאורעות = 1","שתי קוביות: סכום 7 הכי סביר, סימטריה משני הצדדים","'וגם' → כפל הסתברויות, 'או' → חיבור","בלי החזרה: המאגר קטן בכל שלב","מאורע משלים: לעיתים קל יותר לחשב 1 - P(לא)"]},
   {id:20,title:"ישרים וזוויות",category:"גאומטריה",tips:["זוויות קודקודיות שוות","זוויות צמודות משלימות ל-180°","ישר חותך מקבילים: כל ה'קטנות' שוות, כל ה'גדולות' שוות","סכום 'קטנה' + 'גדולה' = 180°","חשיבה פסיכומטרית: הצבת מספרים בזוויות לפי הסרטוט"]},
-  {id:21,title:"משולשים",category:"גאומטריה",tips:["סכום זוויות = 180°","זווית חיצונית = סכום שתי פנימיות לא צמודות","צלע גדולה מול זווית גדולה","סכום 2 צלעות > צלע שלישית","שטח = (בסיס × גובה) / 2","שטח שווה צלעות = a²√3/4","פיתגורס: c² = a² + b²","שלשות: 3:4:5, 5:12:13, 8:15:17","משולש זהב (30-60-90): a : a√3 : 2a","משולש כסף (45-45-90): a : a : a√2","תיכון מחלק לשני משולשים שווי שטח"]},
+  {id:21,title:"משולשים",category:"גאומטריה",tips:["סכום זוויות = 180°","זווית חיצונית = סכום שתי פנימיות לא צמודות","צלע גדולה מול זווית גדולה","סכום 2 צלעות > צלע שלישית","שטח = (בסיס × גובה) / 2","שטח שווה צלעות = a²√3/4","פיתגורס: c² = a² + b²","◆ שלשות פיתגוריות נפוצות:","  3 : 4 : 5 (וכפולותיה: 6:8:10, 9:12:15, 12:16:20)","  5 : 12 : 13 (חמסה, בת-מצווה, בר-מצווה)","  8 : 15 : 17 (נדיר)","◆ משולש זהב (30°-60°-90°):","  יחס צלעות: a : a√3 : 2a","  הניצב הקטן (מול 30°) = חצי מהיתר","  מניצב קטן לניצב גדול: כופלים ב-√3","  מניצב גדול לניצב קטן: מחלקים ב-√3","◆ משולש כסף (45°-45°-90°):","  יחס צלעות: a : a : a√2","  מניצב ליתר: כופלים ב-√2","  מיתר לניצב: מחלקים ב-√2","תיכון מחלק לשני משולשים שווי שטח","יחס שטחים: כשלשני משולשים גבהים זהים, יחס השטחים = יחס הבסיסים","שטחים אפורים: לרוב חיסור שטחים"]},
   {id:22,title:"מרובעים",category:"גאומטריה",tips:["סכום זוויות במרובע = 360°","מקבילית: נגדיות מקבילות ושוות, אלכסונים חוצים זה את זה, שטח = צלע × גובה","מלבן: כל הזוויות 90°, אלכסונים שווים","מעוין: כל הצלעות שוות, אלכסונים מאונכים וחוצים זוויות, שטח = אלכסונים/2","ריבוע: כל הצלעות שוות + כל הזוויות 90°","טרפז: שטח = גובה×(סכום בסיסים)/2","דלתון: שטח = מכפלת אלכסונים/2","שטח משולש חסום בצורה = חצי שטח הצורה"]},
   {id:23,title:"מעגלים",category:"גאומטריה",tips:["היקף = 2πr, שטח = πr²","אורך קשת = (α/360)×2πr, שטח גזרה = (α/360)×πr²","זווית מרכזית = פעמיים היקפית על אותה קשת","זווית היקפית על קוטר = 90°","מרובע חסום במעגל: סכום נגדיות = 180°","משיק מאונך לרדיוס בנקודת ההשקה","שני משיקים מאותה נקודה שווים → דלתון","π ≈ 3.14","זוויות להכיר: 180°=½, 90°=¼, 60°=⅙, 120°=⅓, 45°=⅛, 72°=⅕"]},
   {id:24,title:"מצולעים",category:"גאומטריה",tips:["סכום זוויות במצולע n צלעות: 180(n-2)","זווית במצולע משוכלל: 180(n-2)/n","זווית מרכזית: 360/n","זווית מרכזית משלימה את זווית המצולע ל-180°","תוספת צלע למצולע מוסיפה 180° לסכום הזוויות","רדיוס ממרכז המעגל החוסם חוצה את זווית המצולע","אלכסונים במצולעים משוכללים מחלקים את הזווית לזוויות שוות (ז. היקפיות במעגל חוסם)","◆ מחומש משוכלל: זווית פנימית = 108°, זווית מרכזית = 72°, סכום זוויות = 540°","◆ משושה משוכלל: זווית פנימית = 120°, זווית מרכזית = 60°, סכום זוויות = 720°","  משושה = 6 משולשים שווי צלעות (כל אחד 1/6 מהשטח)","  שטח משושה = 6a²√3/4","  אלכסון ארוך = 2a, אלכסון קצר = a√3","◆ מתומן משוכלל: זווית פנימית = 135°, זווית מרכזית = 45°, סכום זוויות = 1080°","  מתומן = ריבוע + 4 משולשי כסף + 4 מלבנים","  שטח הריבוע הפנימי = שטח 4 משולשי הכסף","סימטריה - במצולעים משוכללים לרוב ניתן להסתמך על הסרטוט"]},
