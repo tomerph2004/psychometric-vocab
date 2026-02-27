@@ -84,6 +84,9 @@ body::before { content:''; position:fixed; inset:0; background: radial-gradient(
 .flashcard-word { font-size:2.4em; font-weight:900; background:linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; margin-bottom:8px; }
 .flashcard-def { font-size:1.2em; line-height:1.6; margin-bottom:12px; }
 .flashcard-example { font-size:0.95em; opacity:0.8; font-style:italic; border-top:1px solid var(--border); padding-top:10px; margin-top:8px; }
+.vfrac { display:inline-flex; flex-direction:column; align-items:center; vertical-align:middle; margin:0 3px; text-align:center; font-size:0.85em; line-height:1.1; }
+.vfrac-num { border-bottom:1.5px solid currentColor; padding:0 4px 2px; }
+.vfrac-den { padding:2px 4px 0; }
 .flashcard-unit { font-size:0.8em; opacity:0.5; position:absolute; top:10px; left:10px; }
 .flashcard-nav { display:flex; gap:12px; justify-content:center; margin-top:16px; }
 .flashcard-nav .btn { min-width:100px; }
@@ -10194,7 +10197,7 @@ function showMathChapter(id) {
   html += '<div style="background:rgba(255,193,7,0.08);border:1px solid rgba(255,193,7,0.25);border-radius:16px;padding:20px 24px;margin-bottom:28px;">';
   html += '<h3 style="margin-bottom:12px;font-size:1.2em;">💡 דגשים</h3><ul style="list-style:none;padding:0;margin:0;">';
   ch.tips.forEach(t => {
-    html += '<li style="padding:6px 0;border-bottom:1px solid rgba(255,193,7,0.1);line-height:1.6;">▸ '+t+'</li>';
+    html += '<li style="padding:6px 0;border-bottom:1px solid rgba(255,193,7,0.1);line-height:1.6;">▸ '+renderFrac(t)+'</li>';
   });
   html += '</ul></div>';
   
@@ -10206,7 +10209,7 @@ function showMathChapter(id) {
     html += '<div class="card" id="math-q-'+key+'" style="padding:20px;margin-bottom:16px;">';
     html += '<p style="font-weight:bold;margin-bottom:4px;">שאלה '+(i+1)+'</p>';
     html += '<p style="font-size:0.75em;opacity:0.45;margin-bottom:12px;">מקור: '+q.source+'</p>';
-    html += '<p style="margin-bottom:16px;line-height:1.7;">'+q.q+'</p>';
+    html += '<p style="margin-bottom:16px;line-height:1.7;">'+renderFrac(q.q)+'</p>';
     html += '<div style="display:grid;gap:8px;">';
     q.options.forEach((opt, oi) => {
       let style = 'text-align:right;padding:12px 16px;border-radius:10px;border:1px solid var(--border);cursor:pointer;transition:all 0.2s;background:var(--card-bg);';
@@ -10216,12 +10219,12 @@ function showMathChapter(id) {
         else style += 'opacity:0.5;';
       }
       const clickable = prev === undefined ? 'onclick="checkMathAnswer('+id+','+i+','+oi+')"' : '';
-      html += '<div '+clickable+' style="'+style+'">'+opt+'</div>';
+      html += '<div '+clickable+' style="'+style+'">'+renderFrac(opt)+'</div>';
     });
     html += '</div>';
     if (prev !== undefined) {
       html += '<div style="margin-top:12px;padding:12px 16px;border-radius:10px;background:rgba(var(--accent-rgb,100,100,255),0.08);font-size:0.9em;line-height:1.6;">';
-      html += (prev === true ? '✅' : '❌') + ' ' + q.explanation + '</div>';
+      html += (prev === true ? '✅' : '❌') + ' ' + renderFrac(q.explanation) + '</div>';
     }
     html += '</div>';
   });
@@ -10238,6 +10241,12 @@ function checkMathAnswer(chapterId, qIndex, selected) {
   mathAnswered[chapterId+'_'+qIndex] = correct ? true : selected;
   localStorage.setItem((typeof username!=='undefined'?username:'')+'_mathAnswered', JSON.stringify(mathAnswered));
   showMathChapter(chapterId);
+}
+// Render fractions as vertical (numerator over denominator)
+function renderFrac(text) {
+  // Match patterns like 3/4, 17/12, (a+b)/c, a²/b but NOT dates or URLs
+  return text.replace(/(\(?[a-zA-Z0-9²³⁴⁵⁻⁺√πα\+\-\*]+\)?)\s*\/\s*(\(?[a-zA-Z0-9²³⁴⁵⁻⁺√πα\+\-\*]+\)?)/g, 
+    '<span class="vfrac"><span class="vfrac-num">$1</span><span class="vfrac-den">$2</span></span>');
 }
 // ===== END QUANTITATIVE SECTION =====
 
